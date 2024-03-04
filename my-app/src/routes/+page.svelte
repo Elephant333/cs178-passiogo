@@ -1,4 +1,12 @@
 <script>
+    import L from "leaflet";
+    var map = L.map("map").setView([51.505, -0.09], 13);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution:
+            '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+
     let jsonData;
 
     async function fetchData() {
@@ -16,14 +24,31 @@
 </script>
 
 <main>
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""
+    />
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""
+    ></script>
+    <div id="map"></div>
     {#if jsonData}
         <div>
             <!-- Render your JSON data here -->
-            {#each Object.keys(jsonData) as key}
-                <p>{key}: {JSON.stringify(jsonData[key])}</p>
-            {/each}
+            <pre>{JSON.stringify(jsonData, null, 2)}</pre>
         </div>
     {:else}
         <p>Loading...</p>
     {/if}
 </main>
+
+<style>
+    #map {
+        height: 180px;
+    }
+</style>
