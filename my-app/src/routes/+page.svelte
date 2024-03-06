@@ -13,6 +13,7 @@
                 jsonData = await response.json();
                 bus_loc = jsonData.entity[0].vehicle.position;
                 bus_loc = [bus_loc.longitude, bus_loc.latitude];
+                setMarker();
             } catch (error) {
                 console.error("Error fetching JSON data:", error);
             }
@@ -23,6 +24,12 @@
 
         return () => clearInterval(interval);
     });
+
+    function setMarker() {
+        if (bus_loc) {
+            var marker = new maplibregl.Marker().setLngLat(bus_loc).addTo(map);
+        }
+    }
 </script>
 
 <main>
@@ -44,7 +51,6 @@
                 center: [-71.1189, 42.3735], // starting position [lng, lat]
                 zoom: 13, // starting zoom
             });
-            var marker = new maplibregl.Marker().setLngLat(bus_loc).addTo(map);
         </script>
         {#if jsonData}
             <p>{bus_loc}</p>
