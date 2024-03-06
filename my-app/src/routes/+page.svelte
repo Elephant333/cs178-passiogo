@@ -3,6 +3,7 @@
 
     var jsonData;
     var bus_loc;
+    var marker;
 
     onMount(() => {
         async function fetchData() {
@@ -27,7 +28,12 @@
 
     function setMarker() {
         if (bus_loc) {
-            var marker = new maplibregl.Marker().setLngLat(bus_loc).addTo(map);
+            if (marker) {
+                marker.setLngLat(bus_loc)
+            }
+            else {
+                marker = new maplibregl.Marker().setLngLat(bus_loc).addTo(map);
+            }
         }
     }
 </script>
