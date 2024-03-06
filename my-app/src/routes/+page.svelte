@@ -1,9 +1,8 @@
 <script>
-    import { MapLibre } from "svelte-maplibre";
     import { onMount } from "svelte";
 
-    let jsonData;
-    let bus_loc;
+    var jsonData;
+    var bus_loc;
 
     onMount(() => {
         async function fetchData() {
@@ -27,28 +26,34 @@
 </script>
 
 <main>
-    <MapLibre
-        center={[-71.1189, 42.3735]}
-        zoom={13}
-        class="map"
-        standardControls
-        style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
-    >
-    </MapLibre>
-    {#if jsonData}
-        <p>{bus_loc}</p>
-        <div>
-            <!-- Render your JSON data here -->
-            <pre>{JSON.stringify(jsonData, null, 2)}</pre>
-        </div>
-    {:else}
-        <p>Loading...</p>
-    {/if}
+    <head>
+        <script
+            src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"
+        ></script>
+        <link
+            href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <div id="map" style="width: 1000px; height: 500px;"></div>
+        <script>
+            var map = new maplibregl.Map({
+                container: "map",
+                style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json", // stylesheet location
+                center: [-71.1189, 42.3735], // starting position [lng, lat]
+                zoom: 13, // starting zoom
+            });
+            var marker = new maplibregl.Marker().setLngLat(bus_loc).addTo(map);
+        </script>
+        {#if jsonData}
+            <p>{bus_loc}</p>
+            <div>
+                <!-- Render your JSON data here -->
+                <pre>{JSON.stringify(jsonData, null, 2)}</pre>
+            </div>
+        {:else}
+            <p>Loading...</p>
+        {/if}
+    </body>
 </main>
-
-<style>
-    :global(.map) {
-        height: 500px;
-        width: 1000px;
-    }
-</style>

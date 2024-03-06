@@ -1,3 +1,5 @@
+<!-- attempting to us https://leafletjs.com/, but outdated -->
+
 <script>
     import Geolocation from "svelte-geolocation";
 

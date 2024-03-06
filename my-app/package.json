@@ -18,6 +18,7 @@
 	"type": "module",
 	"dependencies": {
 		"leaflet": "^1.9.4",
+		"maplibre-gl": "^4.1.0",
 		"svelte-maplibre": "^0.8.2"
 	}
 }
