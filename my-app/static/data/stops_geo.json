@@ -1,0 +1,184 @@
+[
+    {
+        "lngLat":[
+            -71.119075,
+            42.364114
+        ],
+        "name":"1 Western Ave"
+    },
+    {
+        "lngLat":[
+            -71.114945,
+            42.359703
+        ],
+        "name":"784 Memorial Drive"
+    },
+    {
+        "lngLat":[
+            -71.127741708,
+            42.363958424
+        ],
+        "name":"Barry's Corner (Northbound)"
+    },
+    {
+        "lngLat":[
+            -71.127861727,
+            42.363936034
+        ],
+        "name":"Barry's Corner (Southbound)"
+    },
+    {
+        "lngLat":[
+            -71.122417866,
+            42.376994673
+        ],
+        "name":"Cambridge Common"
+    },
+    {
+        "lngLat":[
+            -71.119965,
+            42.372722
+        ],
+        "name":"Harvard Square (Northbound)"
+    },
+    {
+        "lngLat":[
+            -71.119734232,
+            42.373378883
+        ],
+        "name":"Harvard Square (Southbound)"
+    },
+    {
+        "lngLat":[
+            -71.120985,
+            42.371524
+        ],
+        "name":"Kennedy School (Northbound)"
+    },
+    {
+        "lngLat":[
+            -71.121339,
+            42.371203
+        ],
+        "name":"Kennedy School (Southbound)"
+    },
+    {
+        "lngLat":[
+            -71.115008,
+            42.37288
+        ],
+        "name":"Lamont Library"
+    },
+    {
+        "lngLat":[
+            -71.119937392,
+            42.377977084
+        ],
+        "name":"Law School (WCC)"
+    },
+    {
+        "lngLat":[
+            -71.116713434,
+            42.370083645
+        ],
+        "name":"Leverett House"
+    },
+    {
+        "lngLat":[
+            -71.119467061,
+            42.375187466
+        ],
+        "name":"Mass and Garden"
+    },
+    {
+        "lngLat":[
+            -71.115333438,
+            42.368758709
+        ],
+        "name":"Mather House"
+    },
+    {
+        "lngLat":[
+            -71.11663,
+            42.378933
+        ],
+        "name":"Maxwell Dworkin"
+    },
+    {
+        "lngLat":[
+            -71.114392997,
+            42.37645186
+        ],
+        "name":"Memorial Hall"
+    },
+    {
+        "lngLat":[
+            -71.125325,
+            42.381867
+        ],
+        "name":"Quad"
+    },
+    {
+        "lngLat":[
+            -71.12212,
+            42.3765
+        ],
+        "name":"Radcliffe Yard"
+    },
+    {
+        "lngLat":[
+            -71.115974486,
+            42.376901687
+        ],
+        "name":"Science Center"
+    },
+    {
+        "lngLat":[
+            -71.125392617,
+            42.363328644
+        ],
+        "name":"SEC"
+    },
+    {
+        "lngLat":[
+            -71.114510008,
+            42.374634042
+        ],
+        "name":"Sever Gate"
+    },
+    {
+        "lngLat":[
+            -71.124887448,
+            42.367121429
+        ],
+        "name":"Stadium (Northbound)"
+    },
+    {
+        "lngLat":[
+            -71.125015193,
+            42.367024629
+        ],
+        "name":"Stadium (Southbound)"
+    },
+    {
+        "lngLat":[
+            -71.115427,
+            42.372127
+        ],
+        "name":"The Inn"
+    },
+    {
+        "lngLat":[
+            -71.116972399,
+            42.372843815
+        ],
+        "name":"Widener Gate"
+    },
+    {
+        "lngLat":[
+            -71.117267311,
+            42.371468397
+        ],
+        "name":"Winthrop House"
+    }
+]
