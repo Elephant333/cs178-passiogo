@@ -2,10 +2,21 @@
     import { onMount } from "svelte";
     import maplibregl from "maplibre-gl";
 
-    let jsonData;
-    let markers = [];
+    let jsonData; 
+    let stopsData; 
+    let markers = []; // keep track of live vehicle markers
+    let stopsMarkers = []; 
+
+    let map;
 
     onMount(() => {
+        map = new maplibregl.Map({
+            container: "map",
+            style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+            center: [-71.1189, 42.3735],
+            zoom: 14,
+        });
+
         async function fetchData() {
             try {
                 const response = await fetch(
@@ -18,8 +29,20 @@
             }
         }
 
-        const interval = setInterval(fetchData, 3000);
+        async function fetchStops() {
+            try {
+                const response = await fetch('/data/stops_geo.json'); // data was placed under static/data
+                stopsData = await response.json();
+                displayStops();
+            } catch (error) {
+                console.error("Error fetching stops data:", error);
+            }
+        }
+       
         fetchData();
+        fetchStops();
+
+        const interval = setInterval(fetchData, 3000);
 
         return () => clearInterval(interval);
     });
@@ -33,9 +56,6 @@
                 var busIcon = document.createElement("div");
                 busIcon.style.width = "25px";
                 busIcon.style.height = "25px";
-                // Explicitly set scaleFactor=2 in the call
-                // and backgroundSize=contain to get better
-                // Marker Icon quality with MapLibre GL
                 busIcon.style.backgroundSize = "contain";
                 busIcon.style.backgroundImage =
                 "url(https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Eo_circle_green_arrow-up.svg/2048px-Eo_circle_green_arrow-up.svg.png)";
@@ -50,7 +70,26 @@
             });
         }
     }
+
+    function displayStops() {
+        if (stopsData) {
+            stopsData.forEach((stop) => {
+                var stopIcon = document.createElement("div");
+                stopIcon.style.width = "15px";
+                stopIcon.style.height = "15px";
+                stopIcon.style.borderRadius = "50%";
+                stopIcon.style.backgroundColor = "pink";
+                stopIcon.title = stop.name; 
+                const marker = new maplibregl.Marker({ element: stopIcon })
+                    .setLngLat(stop.lngLat)
+                    .addTo(map);
+                stopsMarkers.push(marker);
+            });
+        }
+    }
 </script>
+
+
 
 <main>
     <head>
