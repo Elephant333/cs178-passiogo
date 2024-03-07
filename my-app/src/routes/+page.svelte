@@ -78,8 +78,9 @@
                 stopIcon.style.width = "15px";
                 stopIcon.style.height = "15px";
                 stopIcon.style.borderRadius = "50%";
-                stopIcon.style.backgroundColor = "pink";
-                stopIcon.title = stop.name; 
+                stopIcon.style.backgroundColor = "gray";
+                stopIcon.title = stop.name;
+                stopIcon.style.cursor = "pointer";
                 const marker = new maplibregl.Marker({ element: stopIcon })
                     .setLngLat(stop.lngLat)
                     .addTo(map);
