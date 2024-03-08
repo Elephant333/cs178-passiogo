@@ -54,14 +54,14 @@
             routesData.forEach((route, index) => {
                 const routeId = `route-${route.route_id}`;
 
-                // Check if the layer already exists
+                // check if the layer already exists
                 if (map.getLayer(routeId)) {
-                    // If it does, remove the layer and its source
+                    // if it does, remove the layer and its source
                     map.removeLayer(routeId);
-                    map.removeSource(routeId); // Make sure to also remove the source
+                    map.removeSource(routeId); // also remove the source
                 }
 
-                // Generate a unique color for each route. Customize as needed.
+                // create a unique color for each route. 
                 const color = `hsl(${(index * 360 / routesData.length) % 360}, 100%, 50%)`;
                 map.addLayer({
                     'id': routeId,
