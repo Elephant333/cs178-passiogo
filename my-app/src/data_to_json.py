@@ -43,7 +43,7 @@ def get_route_path():
         route_id = row['route_id']
         shape_id = row['shape_id']
         route_info = routes_df.loc[routes_df['route_id'] == route_id].iloc[0]
-        shape_points = shapes_grouped.get_group(shape_id)[['shape_pt_lat', 'shape_pt_lon']].values.tolist()
+        shape_points = shapes_grouped.get_group(shape_id)[['shape_pt_lon', 'shape_pt_lat']].values.tolist() # should be this order!!
         
         route_obj = {
             "route_id": int(route_id),
@@ -69,4 +69,4 @@ def get_stops_geo():
     pd.Series(stops_json).to_json(stops_output_path, orient="values", indent=4)
     print(f"Generated stops.json at {stops_output_path}")
 
-get_stops_geo()
+get_route_path()
