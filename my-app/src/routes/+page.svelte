@@ -15,7 +15,7 @@
             container: "map",
             style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
             center: [-71.1189, 42.3735],
-            zoom: 14,
+            zoom: 13.75,
         });
 
         async function fetchData() {
@@ -156,14 +156,6 @@
     </head>
     <body>
         <div id="map" style="width: 800px; height: 700px;"></div>
-        <script>
-            var map = new maplibregl.Map({
-                container: "map",
-                style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json", // stylesheet location
-                center: [-71.1189, 42.3735], // starting position [lng, lat]
-                zoom: 14, // starting zoom
-            });
-        </script>
         {#if jsonData}
             <div>
                 <!-- Render your JSON data here -->
