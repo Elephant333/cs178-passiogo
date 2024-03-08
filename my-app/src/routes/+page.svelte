@@ -6,6 +6,7 @@
     let stopsData; 
     let markers = []; // keep track of live vehicle markers
     let stopsMarkers = []; 
+    let routesData;
 
     let map;
 
@@ -38,9 +39,60 @@
                 console.error("Error fetching stops data:", error);
             }
         }
+
+        async function fetchRoutes() {
+            try {
+                const response = await fetch('/data/route_paths.json'); 
+                routesData = await response.json();
+                displayRoutes();
+            } catch (error) {
+                console.error("Error fetching routes data:", error);
+            }
+        }
+
+        function displayRoutes() {
+            routesData.forEach((route, index) => {
+                const routeId = `route-${route.route_id}`;
+
+                // Check if the layer already exists
+                if (map.getLayer(routeId)) {
+                    // If it does, remove the layer and its source
+                    map.removeLayer(routeId);
+                    map.removeSource(routeId); // Make sure to also remove the source
+                }
+
+                // Generate a unique color for each route. Customize as needed.
+                const color = `hsl(${(index * 360 / routesData.length) % 360}, 100%, 50%)`;
+                map.addLayer({
+                    'id': routeId,
+                    'type': 'line',
+                    'source': {
+                        'type': 'geojson',
+                        'data': {
+                            'type': 'Feature',
+                            'properties': {},
+                            'geometry': {
+                                'type': 'LineString',
+                                'coordinates': route.path
+                            }
+                        }
+                    },
+                    'layout': {
+                        'line-join': 'round',
+                        'line-cap': 'round'
+                    },
+                    'paint': {
+                        'line-color': color,
+                        'line-width': 4
+                    }
+                });
+            });
+        }
+
        
         fetchData();
         fetchStops();
+        fetchRoutes();
 
         const interval = setInterval(fetchData, 3000);
 
