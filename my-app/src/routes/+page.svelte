@@ -106,11 +106,11 @@
 
             jsonData.entity.forEach((entity) => {
                 var busIcon = document.createElement("div");
-                busIcon.style.width = "25px";
-                busIcon.style.height = "25px";
+                busIcon.style.width = "20px";
+                busIcon.style.height = "20px";
                 busIcon.style.backgroundSize = "contain";
                 busIcon.style.backgroundImage =
-                "url(https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Eo_circle_green_arrow-up.svg/2048px-Eo_circle_green_arrow-up.svg.png)";
+                "url(/data/../uparrow.png)"; // consued why this /../ is needed
                 busIcon.style.cursor = "pointer";
                 const bus_loc = entity.vehicle.position;
                 const lngLat = [bus_loc.longitude, bus_loc.latitude];
