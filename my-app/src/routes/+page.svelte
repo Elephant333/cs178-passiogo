@@ -134,20 +134,45 @@
             markers.forEach((marker) => marker.remove());
             markers = [];
 
+            const currentTime = Date.now() / 1000;
+
             jsonGPSData.entity.forEach((entity) => {
                 var busIcon = document.createElement("div");
                 busIcon.style.width = "20px";
                 busIcon.style.height = "20px";
                 busIcon.style.backgroundSize = "contain";
-                busIcon.style.backgroundImage = "url(/data/../uparrow.png)"; // consued why this /../ is needed
+                busIcon.style.backgroundImage = "url(/data/../uparrow.png)"; // confusued why this /../ is needed
                 busIcon.style.cursor = "pointer";
+
+                const dataTimestamp = entity.vehicle.timestamp;
+
+                const freshness = Math.max(
+                    0,
+                    Math.floor(currentTime - dataTimestamp),
+                );
+
+                var freshnessText = document.createElement("div");
+                freshnessText.textContent = freshness + "s";
+                freshnessText.style.fontSize = "12px";
+                freshnessText.style.color = "black";
+                freshnessText.style.textAlign = "center";
+                freshnessText.style.marginLeft = "20px";
+
                 const bus_loc = entity.vehicle.position;
                 const lngLat = [bus_loc.longitude, bus_loc.latitude];
-                const marker = new maplibregl.Marker({ element: busIcon })
+
+                const busMarker = new maplibregl.Marker({ element: busIcon })
                     .setLngLat(lngLat)
                     .addTo(map);
-                marker.setRotation(bus_loc.bearing);
-                markers.push(marker);
+                busMarker.setRotation(bus_loc.bearing);
+                markers.push(busMarker);
+
+                const textMarker = new maplibregl.Marker({
+                    element: freshnessText,
+                })
+                    .setLngLat(lngLat)
+                    .addTo(map);
+                markers.push(textMarker);
             });
         }
     }
