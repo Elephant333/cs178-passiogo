@@ -2,11 +2,13 @@
     import { onMount } from "svelte";
     import maplibregl from "maplibre-gl";
 
-    let jsonData; 
-    let stopsData; 
+    let jsonGPSData;
+    let jsonETAData;
+    let stopsData;
     let markers = []; // keep track of live vehicle markers
-    let stopsMarkers = []; 
+    let stopsMarkers = [];
     let routesData;
+    let userCoordinates; // Track user coordinates
 
     let map;
 
@@ -18,21 +20,50 @@
             zoom: 13.75,
         });
 
-        async function fetchData() {
+        // Get user's location
+        let geolocate = new maplibregl.GeolocateControl({
+            positionOptions: {
+                enableHighAccuracy: true,
+            },
+            trackUserLocation: true,
+        });
+        map.addControl(geolocate);
+        geolocate.on("geolocate", function (event) {
+            userCoordinates = [event.coords.longitude, event.coords.latitude];
+        });
+
+        async function fetchGPSData() {
             try {
                 const response = await fetch(
                     "https://passio3.com/harvard/passioTransit/gtfs/realtime/vehiclePositions.json",
                 );
-                jsonData = await response.json();
+                jsonGPSData = await response.json();
                 updateMarkers();
             } catch (error) {
-                console.error("Error fetching JSON data:", error);
+                console.error("Error fetching GPS JSON data:", error);
             }
+        }
+
+        async function fetchETAData() {
+            try {
+                const response = await fetch(
+                    "https://passio3.com/harvard/passioTransit/gtfs/realtime/tripUpdates.json",
+                );
+                jsonETAData = await response.json();
+                updateMarkers();
+            } catch (error) {
+                console.error("Error fetching ETA JSON data:", error);
+            }
+        }
+
+        async function fetchData() {
+            fetchGPSData();
+            fetchETAData();
         }
 
         async function fetchStops() {
             try {
-                const response = await fetch('/data/stops_geo.json'); // data was placed under static/data
+                const response = await fetch("/data/stops_geo.json"); // data was placed under static/data
                 stopsData = await response.json();
                 displayStops();
             } catch (error) {
@@ -42,7 +73,7 @@
 
         async function fetchRoutes() {
             try {
-                const response = await fetch('/data/route_paths.json'); 
+                const response = await fetch("/data/route_paths.json");
                 routesData = await response.json();
                 displayRoutes();
             } catch (error) {
@@ -61,35 +92,34 @@
                     map.removeSource(routeId); // also remove the source
                 }
 
-                // create a unique color for each route. 
-                const color = `hsl(${(index * 360 / routesData.length) % 360}, 100%, 50%)`;
+                // create a unique color for each route.
+                const color = `hsl(${((index * 360) / routesData.length) % 360}, 100%, 50%)`;
                 map.addLayer({
-                    'id': routeId,
-                    'type': 'line',
-                    'source': {
-                        'type': 'geojson',
-                        'data': {
-                            'type': 'Feature',
-                            'properties': {},
-                            'geometry': {
-                                'type': 'LineString',
-                                'coordinates': route.path
-                            }
-                        }
+                    id: routeId,
+                    type: "line",
+                    source: {
+                        type: "geojson",
+                        data: {
+                            type: "Feature",
+                            properties: {},
+                            geometry: {
+                                type: "LineString",
+                                coordinates: route.path,
+                            },
+                        },
                     },
-                    'layout': {
-                        'line-join': 'round',
-                        'line-cap': 'round'
+                    layout: {
+                        "line-join": "round",
+                        "line-cap": "round",
                     },
-                    'paint': {
-                        'line-color': color,
-                        'line-width': 4
-                    }
+                    paint: {
+                        "line-color": color,
+                        "line-width": 4,
+                    },
                 });
             });
         }
 
-       
         fetchData();
         fetchStops();
         fetchRoutes();
@@ -100,17 +130,16 @@
     });
 
     function updateMarkers() {
-        if (jsonData && jsonData.entity) {
+        if (jsonGPSData && jsonGPSData.entity) {
             markers.forEach((marker) => marker.remove());
             markers = [];
 
-            jsonData.entity.forEach((entity) => {
+            jsonGPSData.entity.forEach((entity) => {
                 var busIcon = document.createElement("div");
                 busIcon.style.width = "20px";
                 busIcon.style.height = "20px";
                 busIcon.style.backgroundSize = "contain";
-                busIcon.style.backgroundImage =
-                "url(/data/../uparrow.png)"; // consued why this /../ is needed
+                busIcon.style.backgroundImage = "url(/data/../uparrow.png)"; // consued why this /../ is needed
                 busIcon.style.cursor = "pointer";
                 const bus_loc = entity.vehicle.position;
                 const lngLat = [bus_loc.longitude, bus_loc.latitude];
@@ -142,8 +171,6 @@
     }
 </script>
 
-
-
 <main>
     <head>
         <script
@@ -156,10 +183,27 @@
     </head>
     <body>
         <div id="map" style="width: 800px; height: 700px;"></div>
-        {#if jsonData}
+        <h1>User Coordinates</h1>
+        {#if userCoordinates}
+            <p>Longitude: {userCoordinates[0]}</p>
+            <p>Latitude: {userCoordinates[1]}</p>
+        {:else}
+            <p>Loading...</p>
+        {/if}
+        <h1>ETA DATA</h1>
+        {#if jsonETAData}
             <div>
                 <!-- Render your JSON data here -->
-                <pre>{JSON.stringify(jsonData, null, 2)}</pre>
+                <pre>{JSON.stringify(jsonETAData, null, 2)}</pre>
+            </div>
+        {:else}
+            <p>Loading...</p>
+        {/if}
+        <h1>GPS DATA</h1>
+        {#if jsonGPSData}
+            <div>
+                <!-- Render your JSON data here -->
+                <pre>{JSON.stringify(jsonGPSData, null, 2)}</pre>
             </div>
         {:else}
             <p>Loading...</p>
