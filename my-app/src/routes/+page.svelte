@@ -10,6 +10,8 @@
     let routesData;
     let userCoordinates;
     let allETATimes = [];
+    let trip_to_route;
+    let route_to_name;
 
     let map;
 
@@ -83,53 +85,73 @@
             }
         }
 
-        function displayRoutes() {
-            routesData.forEach((route, index) => {
-                const routeId = `route-${route.route_id}`;
+        async function fetchTripToRoute() {
+            try {
+                const response = await fetch("/data/trip_to_routeId.json");
+                trip_to_route = await response.json();
+            } catch (error) {
+                console.error("Error fetching trip to route data:", error);
+            }
+        }
 
-                // check if the layer already exists
-                if (map.getLayer(routeId)) {
-                    // if it does, remove the layer and its source
-                    map.removeLayer(routeId);
-                    map.removeSource(routeId); // also remove the source
-                }
-
-                // create a unique color for each route.
-                const color = `hsl(${((index * 360) / routesData.length) % 360}, 100%, 50%)`;
-                map.addLayer({
-                    id: routeId,
-                    type: "line",
-                    source: {
-                        type: "geojson",
-                        data: {
-                            type: "Feature",
-                            properties: {},
-                            geometry: {
-                                type: "LineString",
-                                coordinates: route.path,
-                            },
-                        },
-                    },
-                    layout: {
-                        "line-join": "round",
-                        "line-cap": "round",
-                    },
-                    paint: {
-                        "line-color": color,
-                        "line-width": 4,
-                    },
-                });
-            });
+        async function fetchRouteToName() {
+            try {
+                const response = await fetch("/data/routeId_to_name.json");
+                route_to_name = await response.json();
+            } catch (error) {
+                console.error("Error fetching route to name data:", error);
+            }
         }
 
         fetchData();
         fetchStops();
         fetchRoutes();
+        fetchTripToRoute();
+        fetchRouteToName();
 
         const interval = setInterval(fetchData, 3000);
 
         return () => clearInterval(interval);
     });
+
+    function displayRoutes() {
+        routesData.forEach((route, index) => {
+            const routeId = `route-${route.route_id}`;
+
+            // check if the layer already exists
+            if (map.getLayer(routeId)) {
+                // if it does, remove the layer and its source
+                map.removeLayer(routeId);
+                map.removeSource(routeId); // also remove the source
+            }
+
+            // create a unique color for each route.
+            const color = `hsl(${((index * 360) / routesData.length) % 360}, 100%, 50%)`;
+            map.addLayer({
+                id: routeId,
+                type: "line",
+                source: {
+                    type: "geojson",
+                    data: {
+                        type: "Feature",
+                        properties: {},
+                        geometry: {
+                            type: "LineString",
+                            coordinates: route.path,
+                        },
+                    },
+                },
+                layout: {
+                    "line-join": "round",
+                    "line-cap": "round",
+                },
+                paint: {
+                    "line-color": color,
+                    "line-width": 4,
+                },
+            });
+        });
+    }
 
     function updateMarkers() {
         if (jsonGPSData && jsonGPSData.entity) {
@@ -188,9 +210,9 @@
             entity?.trip_update?.stop_time_update?.forEach((stop) => {
                 const stopId = stop.stop_id;
                 const etaTime = stop.arrival.time;
-                routeETATimes.push({"stopId": stopId, "etaTime": etaTime});
+                routeETATimes.push({ stopId: stopId, etaTime: etaTime });
             });
-            allETATimes.push({"tripId": tripId, "etaTimes": routeETATimes});
+            allETATimes.push({ tripId: tripId, etaTimes: routeETATimes });
         });
     }
 
@@ -227,14 +249,22 @@
         <div class="container">
             <div class="sidebar">
                 <h2>Stop ETA Times</h2>
+                {#if trip_to_route && route_to_name}
                 {#each allETATimes as routeETA}
-                    <h3>Trip {routeETA.tripId}</h3>
-                    <ul>
-                        {#each routeETA.etaTimes as etaTime}
-                            <li>Stop {etaTime.stopId} - {new Date(etaTime.etaTime * 1000).toLocaleTimeString()}</li>
+                <h3>{route_to_name[trip_to_route[routeETA.tripId]]}</h3>
+                <ul>
+                    {#each routeETA.etaTimes as etaTime}
+                    <li>
+                        Stop {etaTime.stopId} - {new Date(
+                            etaTime.etaTime * 1000,
+                            ).toLocaleTimeString()}
+                        </li>
                         {/each}
                     </ul>
-                {/each}
+                    {/each}
+                {:else}
+                    <p>Loading...</p>
+                {/if}
             </div>
             <div id="map"></div>
         </div>
@@ -243,9 +273,9 @@
             <p>Longitude: {userCoordinates[0]}</p>
             <p>Latitude: {userCoordinates[1]}</p>
         {:else}
-            <p>Loading...</p>
+            <p>Click the GPS button...</p>
         {/if}
-        <h2>ETA DATA</h2>
+        <h2>ETA Data</h2>
         {#if jsonETAData}
             <div>
                 <!-- Render your JSON data here -->
@@ -254,7 +284,7 @@
         {:else}
             <p>Loading...</p>
         {/if}
-        <h2>GPS DATA</h2>
+        <h2>GPS Data</h2>
         {#if jsonGPSData}
             <div>
                 <!-- Render your JSON data here -->
