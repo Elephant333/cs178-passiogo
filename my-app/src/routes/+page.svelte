@@ -310,6 +310,7 @@
             });
 
             if (closestStopsETA.length > 0) {
+                closestStopsETA.sort((a, b) => a.etaTime - b.etaTime);
                 closestETATimes.push({
                     routeName: routeETA.routeName,
                     etaTimes: closestStopsETA,
