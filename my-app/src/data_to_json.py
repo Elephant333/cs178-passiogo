@@ -1,4 +1,5 @@
 import pandas as pd
+import json
 
 def all_to_json():
     gtfs_files = {
@@ -69,4 +70,23 @@ def get_stops_geo():
     pd.Series(stops_json).to_json(stops_output_path, orient="values", indent=4)
     print(f"Generated stops.json at {stops_output_path}")
 
-get_route_path()
+def trip_to_routeId():
+    f = open('../data/json/trips.json')
+    data = json.load(f)
+    output_path = '../data/json/trip_to_routeId.json'
+    trip_route_dict = {item["trip_id"]: item["route_id"] for item in data}
+    with open(output_path, "w") as outfile:
+        json.dump(trip_route_dict, outfile, indent=4)
+
+def routeId_to_name():
+    f = open('../data/json/routes.json')
+    data = json.load(f)
+    output_path = '../data/json/routeId_to_name.json'
+    route_name_dict = {item["route_id"]: item["route_long_name"] for item in data}
+    with open(output_path, "w") as outfile:
+        json.dump(route_name_dict, outfile, indent=4)
+
+# get_route_path()
+# get_stops_geo()
+# trip_to_routeId()
+routeId_to_name()
