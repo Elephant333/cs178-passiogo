@@ -86,7 +86,16 @@ def routeId_to_name():
     with open(output_path, "w") as outfile:
         json.dump(route_name_dict, outfile, indent=4)
 
+def stopId_to_name():
+    f = open('../data/json/stops.json')
+    data = json.load(f)
+    output_path = '../data/json/stopId_to_name.json'
+    stop_name_dict = {item["stop_id"]: item["stop_name"] for item in data}
+    with open(output_path, "w") as outfile:
+        json.dump(stop_name_dict, outfile, indent=4)
+
 # get_route_path()
 # get_stops_geo()
 # trip_to_routeId()
-routeId_to_name()
+# routeId_to_name()
+stopId_to_name()

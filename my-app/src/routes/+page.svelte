@@ -12,6 +12,7 @@
     let allETATimes = [];
     let trip_to_route;
     let route_to_name;
+    let stop_to_name;
 
     let map;
 
@@ -103,11 +104,21 @@
             }
         }
 
+        async function fetchStopToName() {
+            try {
+                const response = await fetch("/data/stopId_to_name.json");
+                stop_to_name = await response.json();
+            } catch (error) {
+                console.error("Error fetching stop to name data:", error);
+            }
+        }
+
         fetchData();
         fetchStops();
         fetchRoutes();
         fetchTripToRoute();
         fetchRouteToName();
+        fetchStopToName();
 
         const interval = setInterval(fetchData, 3000);
 
@@ -249,15 +260,15 @@
         <div class="container">
             <div class="sidebar">
                 <h2>Stop ETA Times</h2>
-                {#if trip_to_route && route_to_name}
+                {#if trip_to_route && route_to_name && stop_to_name}
                 {#each allETATimes as routeETA}
                 <h3>{route_to_name[trip_to_route[routeETA.tripId]]}</h3>
                 <ul>
                     {#each routeETA.etaTimes as etaTime}
                     <li>
-                        Stop {etaTime.stopId} - {new Date(
+                        {stop_to_name[etaTime.stopId]} - {new Date(
                             etaTime.etaTime * 1000,
-                            ).toLocaleTimeString()}
+                            ).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
                         </li>
                         {/each}
                     </ul>
