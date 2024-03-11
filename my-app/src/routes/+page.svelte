@@ -13,6 +13,7 @@
     let trip_to_route;
     let route_to_name;
     let stop_dict;
+    let filteredETATimes;
 
     let map;
 
@@ -42,7 +43,6 @@
                     "https://passio3.com/harvard/passioTransit/gtfs/realtime/vehiclePositions.json",
                 );
                 jsonGPSData = await response.json();
-                // updateMarkers();
             } catch (error) {
                 console.error("Error fetching GPS JSON data:", error);
             }
@@ -54,8 +54,6 @@
                     "https://passio3.com/harvard/passioTransit/gtfs/realtime/tripUpdates.json",
                 );
                 jsonETAData = await response.json();
-                // updateMarkers();
-                extractStopETATimes();
             } catch (error) {
                 console.error("Error fetching ETA JSON data:", error);
             }
@@ -65,6 +63,8 @@
             fetchGPSData();
             fetchETAData();
             updateMarkers();
+            extractStopETATimes();
+            filterClosestStopsToUser();
         }
 
         async function fetchStops() {
@@ -212,12 +212,12 @@
             });
 
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    userCoordinates = [
-                        position.coords.longitude,
-                        position.coords.latitude,
-                    ];
-                });
+                // navigator.geolocation.getCurrentPosition((position) => {
+                //     userCoordinates = [
+                //         position.coords.longitude,
+                //         position.coords.latitude,
+                //     ];
+                // });
                 var largerCircleIcon = document.createElement("div");
                 largerCircleIcon.style.width = "20px";
                 largerCircleIcon.style.height = "20px";
@@ -264,10 +264,23 @@
             entity?.trip_update?.stop_time_update?.forEach((stop) => {
                 const stopId = stop.stop_id;
                 const etaTime = stop.arrival.time;
+                const stopCoordinates = [
+                    stop_dict[stopId].longitude,
+                    stop_dict[stopId].latitude,
+                ];
+                if (!stopCoordinates) return; // Skip if coordinates not found
+                const [stopLng, stopLat] = stopCoordinates;
+                const [userLng, userLat] = userCoordinates;
+                // Calculate distance between user and stop
+                const distance = Math.sqrt(
+                    Math.pow(stopLng - userLng, 2) +
+                        Math.pow(stopLat - userLat, 2),
+                );
                 allETATimes[routeName].push({
                     stopId: stopId,
                     etaTime: etaTime,
                     tripId: tripId,
+                    distanceToUser: distance,
                 });
             });
         });
@@ -278,6 +291,31 @@
                 etaTimes,
             }),
         );
+    }
+
+    function filterClosestStopsToUser() {
+        filteredETATimes = [];
+
+        allETATimes.forEach((routeETA) => {
+            let closestStopsETA = [];
+            let closestStopDistance = Infinity;
+
+            routeETA.etaTimes.forEach((etaTime) => {
+                if (etaTime.distanceToUser < closestStopDistance) {
+                    closestStopDistance = etaTime.distanceToUser;
+                    closestStopsETA = [etaTime];
+                } else if (etaTime.distanceToUser === closestStopDistance) {
+                    closestStopsETA.push(etaTime);
+                }
+            });
+
+            if (closestStopsETA.length > 0) {
+                filteredETATimes.push({
+                    routeName: routeETA.routeName,
+                    etaTimes: closestStopsETA,
+                });
+            }
+        });
     }
 
     function displayStops() {
@@ -314,7 +352,7 @@
             <div class="sidebar">
                 <h2>Stop ETA Times</h2>
                 {#if trip_to_route && route_to_name && stop_dict}
-                    {#each allETATimes as routeETA}
+                    {#each filteredETATimes as routeETA}
                         <h3>{routeETA.routeName}</h3>
                         <ul>
                             {#each routeETA.etaTimes as etaTime}
