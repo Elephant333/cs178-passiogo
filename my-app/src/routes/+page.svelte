@@ -8,7 +8,8 @@
     let markers = []; // keep track of live vehicle markers
     let stopsMarkers = [];
     let routesData;
-    let userCoordinates; // Track user coordinates
+    let userCoordinates;
+    let allETATimes = [];
 
     let map;
 
@@ -51,6 +52,7 @@
                 );
                 jsonETAData = await response.json();
                 updateMarkers();
+                extractStopETATimes();
             } catch (error) {
                 console.error("Error fetching ETA JSON data:", error);
             }
@@ -177,6 +179,21 @@
         }
     }
 
+    function extractStopETATimes() {
+        allETATimes = [];
+
+        jsonETAData?.entity?.forEach((entity) => {
+            let routeETATimes = [];
+            const tripId = entity.trip_update.trip.trip_id;
+            entity?.trip_update?.stop_time_update?.forEach((stop) => {
+                const stopId = stop.stop_id;
+                const etaTime = stop.arrival.time;
+                routeETATimes.push({"stopId": stopId, "etaTime": etaTime});
+            });
+            allETATimes.push({"tripId": tripId, "etaTimes": routeETATimes});
+        });
+    }
+
     function displayStops() {
         if (stopsData) {
             stopsData.forEach((stop) => {
@@ -207,15 +224,28 @@
         />
     </head>
     <body>
-        <div id="map" style="width: 800px; height: 700px;"></div>
-        <h1>User Coordinates</h1>
+        <div class="container">
+            <div class="sidebar">
+                <h2>Stop ETA Times</h2>
+                {#each allETATimes as routeETA}
+                    <h3>Trip {routeETA.tripId}</h3>
+                    <ul>
+                        {#each routeETA.etaTimes as etaTime}
+                            <li>Stop {etaTime.stopId} - {new Date(etaTime.etaTime * 1000).toLocaleTimeString()}</li>
+                        {/each}
+                    </ul>
+                {/each}
+            </div>
+            <div id="map"></div>
+        </div>
+        <h2>User Coordinates</h2>
         {#if userCoordinates}
             <p>Longitude: {userCoordinates[0]}</p>
             <p>Latitude: {userCoordinates[1]}</p>
         {:else}
             <p>Loading...</p>
         {/if}
-        <h1>ETA DATA</h1>
+        <h2>ETA DATA</h2>
         {#if jsonETAData}
             <div>
                 <!-- Render your JSON data here -->
@@ -224,7 +254,7 @@
         {:else}
             <p>Loading...</p>
         {/if}
-        <h1>GPS DATA</h1>
+        <h2>GPS DATA</h2>
         {#if jsonGPSData}
             <div>
                 <!-- Render your JSON data here -->
@@ -235,3 +265,22 @@
         {/if}
     </body>
 </main>
+
+<style>
+    .container {
+        display: flex;
+    }
+
+    .sidebar {
+        padding-left: 20px;
+        width: 400px;
+        height: 700px;
+        background-color: lightgray;
+        overflow-y: auto;
+    }
+
+    #map {
+        width: 800px;
+        height: 700px;
+    }
+</style>
