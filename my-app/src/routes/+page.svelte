@@ -13,7 +13,7 @@
     let trip_to_route;
     let route_to_name;
     let stop_dict;
-    let filteredETATimes;
+    let closestETATimes;
 
     let map;
 
@@ -294,7 +294,7 @@
     }
 
     function filterClosestStopsToUser() {
-        filteredETATimes = [];
+        closestETATimes = [];
 
         allETATimes.forEach((routeETA) => {
             let closestStopsETA = [];
@@ -310,7 +310,7 @@
             });
 
             if (closestStopsETA.length > 0) {
-                filteredETATimes.push({
+                closestETATimes.push({
                     routeName: routeETA.routeName,
                     etaTimes: closestStopsETA,
                 });
@@ -350,9 +350,9 @@
     <body>
         <div class="container">
             <div class="sidebar">
-                <h2>Stop ETA Times</h2>
+                <h2>ETAs Nearest to You</h2>
                 {#if trip_to_route && route_to_name && stop_dict}
-                    {#each filteredETATimes as routeETA}
+                    {#each closestETATimes as routeETA}
                         <h3>{routeETA.routeName}</h3>
                         <ul>
                             {#each routeETA.etaTimes as etaTime}
