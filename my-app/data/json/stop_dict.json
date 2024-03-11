@@ -1,0 +1,132 @@
+{
+    "5036": {
+        "stop_name": "1 Western Ave",
+        "latitude": 42.364114,
+        "longitude": -71.119075
+    },
+    "58381": {
+        "stop_name": "784 Memorial Drive",
+        "latitude": 42.359703,
+        "longitude": -71.114945
+    },
+    "63189": {
+        "stop_name": "Barry's Corner (Northbound)",
+        "latitude": 42.363958424,
+        "longitude": -71.127741708
+    },
+    "63190": {
+        "stop_name": "Barry's Corner (Southbound)",
+        "latitude": 42.363936034,
+        "longitude": -71.127861727
+    },
+    "132600": {
+        "stop_name": "Cambridge Common",
+        "latitude": 42.376994673,
+        "longitude": -71.122417866
+    },
+    "5041": {
+        "stop_name": "Harvard Square (Northbound)",
+        "latitude": 42.372722,
+        "longitude": -71.119965
+    },
+    "58344": {
+        "stop_name": "Harvard Square (Southbound)",
+        "latitude": 42.373378883,
+        "longitude": -71.119734232
+    },
+    "5040": {
+        "stop_name": "Kennedy School (Northbound)",
+        "latitude": 42.371524,
+        "longitude": -71.120985
+    },
+    "5054": {
+        "stop_name": "Kennedy School (Southbound)",
+        "latitude": 42.371203,
+        "longitude": -71.121339
+    },
+    "5045": {
+        "stop_name": "Lamont Library",
+        "latitude": 42.37288,
+        "longitude": -71.115008
+    },
+    "5042": {
+        "stop_name": "Law School (WCC)",
+        "latitude": 42.377977084,
+        "longitude": -71.119937392
+    },
+    "6854": {
+        "stop_name": "Leverett House",
+        "latitude": 42.370083645,
+        "longitude": -71.116713434
+    },
+    "5050": {
+        "stop_name": "Mass and Garden",
+        "latitude": 42.375187466,
+        "longitude": -71.119467061
+    },
+    "5046": {
+        "stop_name": "Mather House",
+        "latitude": 42.368758709,
+        "longitude": -71.115333438
+    },
+    "5043": {
+        "stop_name": "Maxwell Dworkin",
+        "latitude": 42.378933,
+        "longitude": -71.11663
+    },
+    "5044": {
+        "stop_name": "Memorial Hall",
+        "latitude": 42.37645186,
+        "longitude": -71.114392997
+    },
+    "5049": {
+        "stop_name": "Quad",
+        "latitude": 42.381867,
+        "longitude": -71.125325
+    },
+    "23509": {
+        "stop_name": "Radcliffe Yard",
+        "latitude": 42.3765,
+        "longitude": -71.12212
+    },
+    "6248": {
+        "stop_name": "Science Center",
+        "latitude": 42.376901687,
+        "longitude": -71.115974486
+    },
+    "58343": {
+        "stop_name": "SEC",
+        "latitude": 42.363328644,
+        "longitude": -71.125392617
+    },
+    "154627": {
+        "stop_name": "Sever Gate",
+        "latitude": 42.374634042,
+        "longitude": -71.114510008
+    },
+    "5039": {
+        "stop_name": "Stadium (Northbound)",
+        "latitude": 42.367121429,
+        "longitude": -71.124887448
+    },
+    "23930": {
+        "stop_name": "Stadium (Southbound)",
+        "latitude": 42.367024629,
+        "longitude": -71.125015193
+    },
+    "5047": {
+        "stop_name": "The Inn",
+        "latitude": 42.372127,
+        "longitude": -71.115427
+    },
+    "5048": {
+        "stop_name": "Widener Gate",
+        "latitude": 42.372843815,
+        "longitude": -71.116972399
+    },
+    "5051": {
+        "stop_name": "Winthrop House",
+        "latitude": 42.371468397,
+        "longitude": -71.117267311
+    }
+}

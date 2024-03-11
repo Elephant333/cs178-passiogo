@@ -8,11 +8,11 @@
     let markers = []; // keep track of live vehicle markers
     let stopsMarkers = [];
     let routesData;
-    let userCoordinates;
+    let userCoordinates = [-71.12559, 42.36344]; // SEC coordinates
     let allETATimes = [];
     let trip_to_route;
     let route_to_name;
-    let stop_to_name;
+    let stop_dict;
 
     let map;
 
@@ -24,17 +24,17 @@
             zoom: 13.75,
         });
 
-        // Get user's location
-        let geolocate = new maplibregl.GeolocateControl({
-            positionOptions: {
-                enableHighAccuracy: true,
-            },
-            trackUserLocation: true,
-        });
-        map.addControl(geolocate);
-        geolocate.on("geolocate", function (event) {
-            userCoordinates = [event.coords.longitude, event.coords.latitude];
-        });
+        // Old Maplibre user location button
+        // let geolocate = new maplibregl.GeolocateControl({
+        //     positionOptions: {
+        //         enableHighAccuracy: true,
+        //     },
+        //     trackUserLocation: true,
+        // });
+        // map.addControl(geolocate);
+        // geolocate.on("geolocate", function (event) {
+        //     userCoordinates = [event.coords.longitude, event.coords.latitude];
+        // });
 
         async function fetchGPSData() {
             try {
@@ -42,7 +42,7 @@
                     "https://passio3.com/harvard/passioTransit/gtfs/realtime/vehiclePositions.json",
                 );
                 jsonGPSData = await response.json();
-                updateMarkers();
+                // updateMarkers();
             } catch (error) {
                 console.error("Error fetching GPS JSON data:", error);
             }
@@ -54,7 +54,7 @@
                     "https://passio3.com/harvard/passioTransit/gtfs/realtime/tripUpdates.json",
                 );
                 jsonETAData = await response.json();
-                updateMarkers();
+                // updateMarkers();
                 extractStopETATimes();
             } catch (error) {
                 console.error("Error fetching ETA JSON data:", error);
@@ -64,6 +64,7 @@
         async function fetchData() {
             fetchGPSData();
             fetchETAData();
+            updateMarkers();
         }
 
         async function fetchStops() {
@@ -106,8 +107,8 @@
 
         async function fetchStopToName() {
             try {
-                const response = await fetch("/data/stopId_to_name.json");
-                stop_to_name = await response.json();
+                const response = await fetch("/data/stop_dict.json");
+                stop_dict = await response.json();
             } catch (error) {
                 console.error("Error fetching stop to name data:", error);
             }
@@ -209,6 +210,44 @@
                     .addTo(map);
                 markers.push(textMarker);
             });
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    userCoordinates = [
+                        position.coords.longitude,
+                        position.coords.latitude,
+                    ];
+                });
+                var largerCircleIcon = document.createElement("div");
+                largerCircleIcon.style.width = "20px";
+                largerCircleIcon.style.height = "20px";
+                largerCircleIcon.style.borderRadius = "50%";
+                largerCircleIcon.style.backgroundColor = "lightblue";
+                largerCircleIcon.style.opacity = "0.5"; // Lighter opacity
+                largerCircleIcon.style.pointerEvents = "none"; // To avoid interaction
+
+                const largerCircleMarker = new maplibregl.Marker({
+                    element: largerCircleIcon,
+                })
+                    .setLngLat(userCoordinates)
+                    .addTo(map);
+                markers.push(largerCircleMarker);
+
+                var userLocationIcon = document.createElement("div");
+                userLocationIcon.style.width = "10px";
+                userLocationIcon.style.height = "10px";
+                userLocationIcon.style.borderRadius = "50%";
+                userLocationIcon.style.backgroundColor = "blue";
+                largerCircleIcon.style.opacity = "0.75"; // Lighter opacity
+                userLocationIcon.style.cursor = "pointer";
+
+                const userLocationMarker = new maplibregl.Marker({
+                    element: userLocationIcon,
+                })
+                    .setLngLat(userCoordinates)
+                    .addTo(map);
+                markers.push(userLocationMarker);
+            }
         }
     }
 
@@ -260,18 +299,21 @@
         <div class="container">
             <div class="sidebar">
                 <h2>Stop ETA Times</h2>
-                {#if trip_to_route && route_to_name && stop_to_name}
-                {#each allETATimes as routeETA}
-                <h3>{route_to_name[trip_to_route[routeETA.tripId]]}</h3>
-                <ul>
-                    {#each routeETA.etaTimes as etaTime}
-                    <li>
-                        {stop_to_name[etaTime.stopId]} - {new Date(
-                            etaTime.etaTime * 1000,
-                            ).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
-                        </li>
-                        {/each}
-                    </ul>
+                {#if trip_to_route && route_to_name && stop_dict}
+                    {#each allETATimes as routeETA}
+                        <h3>{route_to_name[trip_to_route[routeETA.tripId]]}</h3>
+                        <ul>
+                            {#each routeETA.etaTimes as etaTime}
+                                <li>
+                                    {stop_dict[etaTime.stopId].stop_name} - {new Date(
+                                        etaTime.etaTime * 1000,
+                                    ).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                    })}
+                                </li>
+                            {/each}
+                        </ul>
                     {/each}
                 {:else}
                     <p>Loading...</p>

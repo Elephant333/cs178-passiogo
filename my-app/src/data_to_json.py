@@ -1,13 +1,14 @@
 import pandas as pd
 import json
 
+
 def all_to_json():
     gtfs_files = {
         "routes": "../data/routes.txt",
         "shapes": "../data/shapes.txt",
         "stop_times": "../data/stop_times.txt",
         "stops": "../data/stops.txt",
-        "trips": "../data/trips.txt"
+        "trips": "../data/trips.txt",
     }
 
     # Define the output directory for the JSON files
@@ -24,75 +25,89 @@ def all_to_json():
         print(f"Converted {file_type} to JSON at {output_path}")
 
 
-routes_df = pd.read_csv('../data/routes.txt')
-trips_df = pd.read_csv('../data/trips.txt')
-shapes_df = pd.read_csv('../data/shapes.txt')
-stops_df = pd.read_csv('../data/stops.txt')
+routes_df = pd.read_csv("../data/routes.txt")
+trips_df = pd.read_csv("../data/trips.txt")
+shapes_df = pd.read_csv("../data/shapes.txt")
+stops_df = pd.read_csv("../data/stops.txt")
 
 
 def get_route_path():
     # merge trips with routes to link each trip with its corresponding route
-    trips_routes_df = pd.merge(trips_df, routes_df, on='route_id')
+    trips_routes_df = pd.merge(trips_df, routes_df, on="route_id")
 
     # get unique shape_ids for each route
-    unique_shapes = trips_routes_df[['route_id', 'shape_id']].drop_duplicates()
-    shapes_grouped = shapes_df.groupby('shape_id')
+    unique_shapes = trips_routes_df[["route_id", "shape_id"]].drop_duplicates()
+    shapes_grouped = shapes_df.groupby("shape_id")
 
     routes_json = []
 
     for _, row in unique_shapes.iterrows():
-        route_id = row['route_id']
-        shape_id = row['shape_id']
-        route_info = routes_df.loc[routes_df['route_id'] == route_id].iloc[0]
-        shape_points = shapes_grouped.get_group(shape_id)[['shape_pt_lon', 'shape_pt_lat']].values.tolist() # should be this order!!
-        
+        route_id = row["route_id"]
+        shape_id = row["shape_id"]
+        route_info = routes_df.loc[routes_df["route_id"] == route_id].iloc[0]
+        shape_points = shapes_grouped.get_group(shape_id)[
+            ["shape_pt_lon", "shape_pt_lat"]
+        ].values.tolist()  # should be this order!!
+
         route_obj = {
             "route_id": int(route_id),
-            "route_short_name": route_info['route_short_name'],
-            "route_long_name": route_info['route_long_name'],
-            "path": shape_points
+            "route_short_name": route_info["route_short_name"],
+            "route_long_name": route_info["route_long_name"],
+            "path": shape_points,
         }
         routes_json.append(route_obj)
 
-    output_path = '../data/json/route_paths.json'
+    output_path = "../data/json/route_paths.json"
     pd.Series(routes_json).to_json(output_path, orient="values", indent=4)
 
     print(f"Generated routesLine.json at {output_path}")
 
+
 def get_stops_geo():
-    stops_json = stops_df.apply(lambda x: {
-        "lngLat": [x['stop_lon'], x['stop_lat']],
-        "name": x['stop_name']
-    }, axis=1).tolist()
+    stops_json = stops_df.apply(
+        lambda x: {"lngLat": [x["stop_lon"], x["stop_lat"]], "name": x["stop_name"]},
+        axis=1,
+    ).tolist()
 
     # Save stops to JSON
-    stops_output_path = '../data/json/stops_geo.json'
+    stops_output_path = "../data/json/stops_geo.json"
     pd.Series(stops_json).to_json(stops_output_path, orient="values", indent=4)
     print(f"Generated stops.json at {stops_output_path}")
 
+
 def trip_to_routeId():
-    f = open('../data/json/trips.json')
+    f = open("../data/json/trips.json")
     data = json.load(f)
-    output_path = '../data/json/trip_to_routeId.json'
+    output_path = "../data/json/trip_to_routeId.json"
     trip_route_dict = {item["trip_id"]: item["route_id"] for item in data}
     with open(output_path, "w") as outfile:
         json.dump(trip_route_dict, outfile, indent=4)
 
+
 def routeId_to_name():
-    f = open('../data/json/routes.json')
+    f = open("../data/json/routes.json")
     data = json.load(f)
-    output_path = '../data/json/routeId_to_name.json'
+    output_path = "../data/json/routeId_to_name.json"
     route_name_dict = {item["route_id"]: item["route_long_name"] for item in data}
     with open(output_path, "w") as outfile:
         json.dump(route_name_dict, outfile, indent=4)
 
+
 def stopId_to_name():
-    f = open('../data/json/stops.json')
+    f = open("../data/json/stops.json")
     data = json.load(f)
-    output_path = '../data/json/stopId_to_name.json'
-    stop_name_dict = {item["stop_id"]: item["stop_name"] for item in data}
+    output_path = "../data/json/stop_dict.json"
+    stop_dict = {
+        item["stop_id"]: {
+            "stop_name": item["stop_name"],
+            "latitude": item["stop_lat"],
+            "longitude": item["stop_lon"],
+        }
+        for item in data
+    }
     with open(output_path, "w") as outfile:
-        json.dump(stop_name_dict, outfile, indent=4)
+        json.dump(stop_dict, outfile, indent=4)
+
 
 # get_route_path()
 # get_stops_geo()
