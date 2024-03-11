@@ -255,15 +255,29 @@
         allETATimes = [];
 
         jsonETAData?.entity?.forEach((entity) => {
-            let routeETATimes = [];
             const tripId = entity.trip_update.trip.trip_id;
+            const routeName = route_to_name[trip_to_route[tripId]];
+            if (!allETATimes[routeName]) {
+                allETATimes[routeName] = [];
+            }
+
             entity?.trip_update?.stop_time_update?.forEach((stop) => {
                 const stopId = stop.stop_id;
                 const etaTime = stop.arrival.time;
-                routeETATimes.push({ stopId: stopId, etaTime: etaTime });
+                allETATimes[routeName].push({
+                    stopId: stopId,
+                    etaTime: etaTime,
+                    tripId: tripId,
+                });
             });
-            allETATimes.push({ tripId: tripId, etaTimes: routeETATimes });
         });
+
+        allETATimes = Object.entries(allETATimes).map(
+            ([routeName, etaTimes]) => ({
+                routeName,
+                etaTimes,
+            }),
+        );
     }
 
     function displayStops() {
@@ -301,7 +315,7 @@
                 <h2>Stop ETA Times</h2>
                 {#if trip_to_route && route_to_name && stop_dict}
                     {#each allETATimes as routeETA}
-                        <h3>{route_to_name[trip_to_route[routeETA.tripId]]}</h3>
+                        <h3>{routeETA.routeName}</h3>
                         <ul>
                             {#each routeETA.etaTimes as etaTime}
                                 <li>
