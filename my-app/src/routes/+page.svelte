@@ -309,6 +309,8 @@
     function filterClosestStopsToUser() {
         closestETATimes = [];
 
+        const currentTimeInSeconds = Math.floor(Date.now() / 1000);
+
         allETATimes.forEach((routeETA) => {
             let closestStopsETA = [];
             let closestStopDistance = Infinity;
@@ -322,6 +324,8 @@
                 }
             });
 
+            // Filter out ETA times more than 5 minutes past the current time
+            closestStopsETA = closestStopsETA.filter(etaTime => (etaTime.etaTime - currentTimeInSeconds) >= (-5 * 60));
             if (closestStopsETA.length > 0) {
                 closestStopsETA.sort((a, b) => a.etaTime - b.etaTime);
                 closestETATimes.push({
