@@ -325,7 +325,9 @@
             });
 
             // Filter out ETA times more than 5 minutes past the current time
-            closestStopsETA = closestStopsETA.filter(etaTime => (etaTime.etaTime - currentTimeInSeconds) >= (-5 * 60));
+            closestStopsETA = closestStopsETA.filter(
+                (etaTime) => etaTime.etaTime - currentTimeInSeconds >= -5 * 60,
+            );
             if (closestStopsETA.length > 0) {
                 closestStopsETA.sort((a, b) => a.etaTime - b.etaTime);
                 closestETATimes.push({
@@ -386,12 +388,23 @@
 
     function createAccordionItems() {
         accordionItems = closestETATimes.map((routeETA) => {
+            const routeName = routeETA.routeName;
+            const closestEtaTimes = routeETA.etaTimes.map((etaTime) => ({
+                stopName: stop_dict[etaTime.stopId].stop_name,
+                etaTime: etaTime.etaTime,
+            }));
+            const allEtasAfterClosestTimes =
+                allEtasAfterClosest
+                    .find((item) => item.routeName === routeName)
+                    ?.etaTimes.map((etaTime) => ({
+                        stopName: stop_dict[etaTime.stopId].stop_name,
+                        etaTime: etaTime.etaTime,
+                    })) || [];
+
             return {
-                routeName: routeETA.routeName,
-                etaTimes: routeETA.etaTimes.map((etaTime) => ({
-                    stopName: stop_dict[etaTime.stopId].stop_name,
-                    etaTime: etaTime.etaTime,
-                })),
+                routeName: routeName,
+                closestEtaTimes: closestEtaTimes,
+                allEtasAfterClosestTimes: allEtasAfterClosestTimes,
             };
         });
     }
@@ -417,25 +430,17 @@
                                 <Header>
                                     <div class="panel-header">
                                         <span>{item.routeName}</span>
-                                        <span>{item.etaTimes[0].stopName}</span>
-                                        <span
-                                            >{new Date(
-                                                item.etaTimes[0].etaTime * 1000,
-                                            ).toLocaleTimeString([], {
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                            })}</span
-                                        >
-                                        <span
-                                            >{Math.floor(
-                                                (new Date(
-                                                    item.etaTimes[0].etaTime *
-                                                        1000,
-                                                ).getTime() -
-                                                    Date.now()) /
-                                                    (1000 * 60),
-                                            )} mins</span
-                                        >
+                                        <span>{item.closestEtaTimes[0].stopName}</span>
+                                        <span>{new Date(
+                                            item.closestEtaTimes[0].etaTime * 1000,
+                                        ).toLocaleTimeString([], {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                        })}</span>
+                                        <span>{Math.floor(
+                                            (item.closestEtaTimes[0].etaTime * 1000 - Date.now()) /
+                                            (1000 * 60),
+                                        )} mins</span>
                                     </div>
                                     <IconButton slot="icon">
                                         <Icon class="material-icons"
@@ -444,8 +449,22 @@
                                     </IconButton>
                                 </Header>
                                 <Content>
+                                    <h3>Closest ETAs</h3>
                                     <ul>
-                                        {#each item.etaTimes as etaTime, index2}
+                                        {#each item.closestEtaTimes as etaTime, index2}
+                                            <li key={index2}>
+                                                {etaTime.stopName} - {new Date(
+                                                    etaTime.etaTime * 1000,
+                                                ).toLocaleTimeString([], {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                })}
+                                            </li>
+                                        {/each}
+                                    </ul>
+                                    <h3>Subsequent Stops</h3>
+                                    <ul>
+                                        {#each item.allEtasAfterClosestTimes as etaTime, index2}
                                             <li key={index2}>
                                                 {etaTime.stopName} - {new Date(
                                                     etaTime.etaTime * 1000,
