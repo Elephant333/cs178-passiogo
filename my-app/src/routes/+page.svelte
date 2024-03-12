@@ -3,6 +3,7 @@
     import maplibregl from "maplibre-gl";
     import Accordion, { Panel, Header, Content } from "@smui-extra/accordion";
     import IconButton, { Icon } from "@smui/icon-button";
+    import Switch from "@smui/switch";
 
     let jsonGPSData;
     let jsonETAData;
@@ -19,6 +20,7 @@
     let allEtasAfterClosest;
     let accordionItems = [];
     let toggledRoute = null; // track which routes to show, default to all
+    let showAllRoutes = true; // show all routes by default
 
     let map;
 
@@ -145,7 +147,15 @@
             }
 
             // Only display the route if its name matches the clicked route name
-            if (route.route_long_name === toggledRoute || toggledRoute === null) {
+            if (
+                route.route_long_name === toggledRoute ||
+                (toggledRoute === null && showAllRoutes) ||
+                (toggledRoute === null &&
+                    !showAllRoutes &&
+                    allETATimes.some(
+                        (et) => et.routeName === route.route_long_name,
+                    ))
+            ) {
                 // create a unique color for each route.
                 const color = `hsl(${((index * 360) / routesData.length) % 360}, 100%, 50%)`;
                 map.addLayer({
@@ -178,11 +188,15 @@
     function routeClicked(routeName) {
         if (routeName === toggledRoute) {
             toggledRoute = null;
-        }
-        else {
+        } else {
             toggledRoute = routeName;
         }
 
+        displayRoutes();
+    }
+
+    function toggleClicked() {
+        showAllRoutes = !showAllRoutes;
         displayRoutes();
     }
 
@@ -443,23 +457,42 @@
         <div class="container">
             <div class="sidebar">
                 <div class="accordion-container">
+                    <div class="toggler">
+                        <p>All Routes</p>
+                        <Switch on:click={() => toggleClicked()} icons={false} />
+                        <p>Active Routes</p>
+                    </div>
                     <Accordion>
                         {#each accordionItems as item, index}
                             <Panel key={index}>
-                                <Header on:click={() => routeClicked(item.routeName)}>
+                                <Header
+                                    on:click={() =>
+                                        routeClicked(item.routeName)}
+                                >
                                     <div class="panel-header">
                                         <span>{item.routeName}</span>
-                                        <span>{item.closestEtaTimes[0].stopName}</span>
-                                        <span>{new Date(
-                                            item.closestEtaTimes[0].etaTime * 1000,
-                                        ).toLocaleTimeString([], {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })}</span>
-                                        <span>{Math.floor(
-                                            (item.closestEtaTimes[0].etaTime * 1000 - Date.now()) /
-                                            (1000 * 60),
-                                        )} mins</span>
+                                        <span
+                                            >{item.closestEtaTimes[0]
+                                                .stopName}</span
+                                        >
+                                        <span
+                                            >{new Date(
+                                                item.closestEtaTimes[0]
+                                                    .etaTime * 1000,
+                                            ).toLocaleTimeString([], {
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                            })}</span
+                                        >
+                                        <span
+                                            >{Math.floor(
+                                                (item.closestEtaTimes[0]
+                                                    .etaTime *
+                                                    1000 -
+                                                    Date.now()) /
+                                                    (1000 * 60),
+                                            )} mins</span
+                                        >
                                     </div>
                                     <IconButton slot="icon">
                                         <Icon class="material-icons"
@@ -615,5 +648,9 @@
         grid-template-columns: 1fr 1fr;
         grid-template-rows: 1fr 1fr;
         grid-auto-flow: column;
+    }
+
+    .toggler {
+        display: flex;
     }
 </style>
