@@ -14,6 +14,7 @@
     let route_to_name;
     let stop_dict;
     let closestETATimes;
+    let allEtasAfterClosest;
 
     let map;
 
@@ -65,6 +66,7 @@
             updateMarkers();
             extractStopETATimes();
             filterClosestStopsToUser();
+            filterEtasAfterClosestEtas();
         }
 
         async function fetchStops() {
@@ -319,6 +321,35 @@
         });
     }
 
+    function filterEtasAfterClosestEtas() {
+        allEtasAfterClosest = [];
+
+        allETATimes.forEach((routeETAs) => {
+            closestETATimes.forEach((closestETA) => {
+                const routeName = closestETA.routeName;
+                const closestEta = closestETA.etaTimes[0];
+                const tripId = closestETA.etaTimes[0].tripId;
+
+                let etasAfterClosest = [];
+                routeETAs.etaTimes.forEach((etaTime) => {
+                    if (
+                        routeETAs.routeName === routeName &&
+                        etaTime.tripId === tripId &&
+                        etaTime.etaTime > closestEta.etaTime
+                    ) {
+                        etasAfterClosest.push(etaTime);
+                    }
+                });
+                etasAfterClosest.sort((a, b) => a.etaTime - b.etaTime);
+
+                allEtasAfterClosest.push({
+                    routeName: routeName,
+                    etaTimes: etasAfterClosest,
+                });
+            });
+        });
+    }
+
     function displayStops() {
         if (stopsData) {
             stopsData.forEach((stop) => {
@@ -354,6 +385,46 @@
                 <h2>ETAs Nearest to You</h2>
                 {#if trip_to_route && route_to_name && stop_dict}
                     {#each closestETATimes as routeETA}
+                        <h3>{routeETA.routeName}</h3>
+                        <ul>
+                            {#each routeETA.etaTimes as etaTime}
+                                <li>
+                                    {stop_dict[etaTime.stopId].stop_name} - {new Date(
+                                        etaTime.etaTime * 1000,
+                                    ).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                    })}
+                                </li>
+                            {/each}
+                        </ul>
+                    {/each}
+                {:else}
+                    <p>Loading...</p>
+                {/if}
+                <h2>ETAs After Closest</h2>
+                {#if trip_to_route && route_to_name && stop_dict}
+                    {#each allEtasAfterClosest as routeETA}
+                        <h3>{routeETA.routeName}</h3>
+                        <ul>
+                            {#each routeETA.etaTimes as etaTime}
+                                <li>
+                                    {stop_dict[etaTime.stopId].stop_name} - {new Date(
+                                        etaTime.etaTime * 1000,
+                                    ).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                    })}
+                                </li>
+                            {/each}
+                        </ul>
+                    {/each}
+                {:else}
+                    <p>Loading...</p>
+                {/if}
+                <h2>All ETAs</h2>
+                {#if trip_to_route && route_to_name && stop_dict}
+                    {#each allETATimes as routeETA}
                         <h3>{routeETA.routeName}</h3>
                         <ul>
                             {#each routeETA.etaTimes as etaTime}
