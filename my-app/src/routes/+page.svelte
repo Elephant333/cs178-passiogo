@@ -263,27 +263,34 @@
                 allETATimes[routeName] = [];
             }
 
+            const uniqueETAs = {};
             entity?.trip_update?.stop_time_update?.forEach((stop) => {
                 const stopId = stop.stop_id;
                 const etaTime = stop.arrival.time;
-                const stopCoordinates = [
-                    stop_dict[stopId].longitude,
-                    stop_dict[stopId].latitude,
-                ];
-                if (!stopCoordinates) return; // Skip if coordinates not found
-                const [stopLng, stopLat] = stopCoordinates;
-                const [userLng, userLat] = userCoordinates;
-                // Calculate distance between user and stop
-                const distance = Math.sqrt(
-                    Math.pow(stopLng - userLng, 2) +
-                        Math.pow(stopLat - userLat, 2),
-                );
-                allETATimes[routeName].push({
-                    stopId: stopId,
-                    etaTime: etaTime,
-                    tripId: tripId,
-                    distanceToUser: distance,
-                });
+
+                // Check if this ETA is a duplicate because the data is crappy
+                const key = tripId + "-" + stopId;
+                if (!uniqueETAs[key]) {
+                    uniqueETAs[key] = true;
+                    const stopCoordinates = [
+                        stop_dict[stopId].longitude,
+                        stop_dict[stopId].latitude,
+                    ];
+                    if (!stopCoordinates) return; // Skip if coordinates not found
+                    const [stopLng, stopLat] = stopCoordinates;
+                    const [userLng, userLat] = userCoordinates;
+                    // Calculate distance between user and stop
+                    const distance = Math.sqrt(
+                        Math.pow(stopLng - userLng, 2) +
+                            Math.pow(stopLat - userLat, 2),
+                    );
+                    allETATimes[routeName].push({
+                        stopId: stopId,
+                        etaTime: etaTime,
+                        tripId: tripId,
+                        distanceToUser: distance,
+                    });
+                }
             });
         });
 
@@ -331,21 +338,22 @@
                 const tripId = closestETA.etaTimes[0].tripId;
 
                 let etasAfterClosest = [];
-                routeETAs.etaTimes.forEach((etaTime) => {
-                    if (
-                        routeETAs.routeName === routeName &&
-                        etaTime.tripId === tripId &&
-                        etaTime.etaTime > closestEta.etaTime
-                    ) {
-                        etasAfterClosest.push(etaTime);
-                    }
-                });
-                etasAfterClosest.sort((a, b) => a.etaTime - b.etaTime);
+                if (routeETAs.routeName === routeName) {
+                    routeETAs.etaTimes.forEach((etaTime) => {
+                        if (
+                            etaTime.tripId === tripId &&
+                            etaTime.etaTime > closestEta.etaTime
+                        ) {
+                            etasAfterClosest.push(etaTime);
+                        }
+                    });
+                    etasAfterClosest.sort((a, b) => a.etaTime - b.etaTime);
 
-                allEtasAfterClosest.push({
-                    routeName: routeName,
-                    etaTimes: etasAfterClosest,
-                });
+                    allEtasAfterClosest.push({
+                        routeName: routeName,
+                        etaTimes: etasAfterClosest,
+                    });
+                }
             });
         });
     }
