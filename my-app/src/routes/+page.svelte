@@ -4,11 +4,6 @@
     import Accordion, { Panel, Header, Content } from "@smui-extra/accordion";
     import IconButton, { Icon } from "@smui/icon-button";
 
-    let panel1Open = false;
-    let panel2Open = false;
-    let panel3Open = false;
-    let panel4Open = false;
-
     let jsonGPSData;
     let jsonETAData;
     let stopsData;
@@ -22,6 +17,7 @@
     let stop_dict;
     let closestETATimes;
     let allEtasAfterClosest;
+    let accordionItems = [];
 
     let map;
 
@@ -74,6 +70,7 @@
             extractStopETATimes();
             filterClosestStopsToUser();
             filterEtasAfterClosestEtas();
+            createAccordionItems();
         }
 
         async function fetchStops() {
@@ -382,6 +379,21 @@
             });
         }
     }
+
+    function createAccordionItems() {
+        accordionItems = closestETATimes.map((routeETA) => {
+            return {
+                routeName: routeETA.routeName,
+                etaTimes: routeETA.etaTimes.map((etaTime) => ({
+                    stopName: stop_dict[etaTime.stopId].stop_name,
+                    etaTime: new Date(etaTime.etaTime * 1000).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    }),
+                })),
+            };
+        });
+    }
 </script>
 
 <main>
@@ -399,48 +411,23 @@
             <div class="sidebar">
                 <div class="accordion-container">
                     <Accordion>
-                        <Panel bind:open={panel1Open}>
-                            <Header>
-                                Panel 1
-                                <IconButton slot="icon" toggle pressed={panel1Open}>
-                                    <Icon class="material-icons" on>expand_less</Icon>
-                                    <Icon class="material-icons">expand_more</Icon>
-                                </IconButton>
-                            </Header>
-                            <Content>The content for panel 1.</Content>
-                        </Panel>
-                        <Panel bind:open={panel2Open}>
-                            <Header>
-                                Panel 2
-                                <IconButton slot="icon" toggle pressed={panel2Open}>
-                                    <Icon class="material-icons" on>expand_less</Icon>
-                                    <Icon class="material-icons">expand_more</Icon>
-                                </IconButton>
-                            </Header>
-                            <Content>The content for panel 2.</Content>
-                        </Panel>
-                        <Panel bind:open={panel3Open}>
-                            <Header>
-                                Panel 3
-                                <span slot="description">Description of panel 3.</span>
-                                <IconButton slot="icon" toggle pressed={panel3Open}>
-                                    <Icon class="material-icons" on>expand_less</Icon>
-                                    <Icon class="material-icons">expand_more</Icon>
-                                </IconButton>
-                            </Header>
-                            <Content>The content for panel 3.</Content>
-                        </Panel>
-                        <Panel bind:open={panel4Open}>
-                            <Header>
-                                Panel 4
-                                <span slot="description">Description of panel 4.</span>
-                                <IconButton slot="icon" toggle pressed={panel4Open}>
-                                    <Icon class="material-icons" on>expand_less</Icon>
-                                    <Icon class="material-icons">expand_more</Icon>
-                                </IconButton>
-                            </Header>
-                            <Content>The content for panel 4.</Content>
-                        </Panel>
+                        {#each accordionItems as item, index}
+                            <Panel key={index}>
+                                <Header>
+                                    {item.routeName}
+                                    <IconButton slot="icon">
+                                        <Icon class="material-icons">expand</Icon>
+                                    </IconButton>
+                                </Header>
+                                <Content>
+                                    <ul>
+                                        {#each item.etaTimes as etaTime, index2}
+                                            <li key={index2}>{etaTime.stopName} - {etaTime.etaTime}</li>
+                                        {/each}
+                                    </ul>
+                                </Content>
+                            </Panel>
+                        {/each}
                     </Accordion>
                 </div>
                 <h2>ETAs Nearest to You</h2>
@@ -540,10 +527,10 @@
     }
 
     .sidebar {
-        padding-left: 20px;
-        padding-right: 20px;
-        padding-top: 20px;
-        width: 400px;
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 10px;
+        width: 500px;
         height: 700px;
         background-color: lightgray;
         overflow-y: auto;
