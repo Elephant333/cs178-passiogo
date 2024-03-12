@@ -386,10 +386,7 @@
                 routeName: routeETA.routeName,
                 etaTimes: routeETA.etaTimes.map((etaTime) => ({
                     stopName: stop_dict[etaTime.stopId].stop_name,
-                    etaTime: new Date(etaTime.etaTime * 1000).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    }),
+                    etaTime: etaTime.etaTime,
                 })),
             };
         });
@@ -414,15 +411,45 @@
                         {#each accordionItems as item, index}
                             <Panel key={index}>
                                 <Header>
-                                    {item.routeName}
+                                    <div class="panel-header">
+                                        <span>{item.routeName}</span>
+                                        <span>{item.etaTimes[0].stopName}</span>
+                                        <span
+                                            >{new Date(
+                                                item.etaTimes[0].etaTime * 1000,
+                                            ).toLocaleTimeString([], {
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                            })}</span
+                                        >
+                                        <span
+                                            >{Math.floor(
+                                                (new Date(
+                                                    item.etaTimes[0].etaTime *
+                                                        1000,
+                                                ).getTime() -
+                                                    Date.now()) /
+                                                    (1000 * 60),
+                                            )} mins</span
+                                        >
+                                    </div>
                                     <IconButton slot="icon">
-                                        <Icon class="material-icons">expand</Icon>
+                                        <Icon class="material-icons"
+                                            >expand</Icon
+                                        >
                                     </IconButton>
                                 </Header>
                                 <Content>
                                     <ul>
                                         {#each item.etaTimes as etaTime, index2}
-                                            <li key={index2}>{etaTime.stopName} - {etaTime.etaTime}</li>
+                                            <li key={index2}>
+                                                {etaTime.stopName} - {new Date(
+                                                    etaTime.etaTime * 1000,
+                                                ).toLocaleTimeString([], {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                })}
+                                            </li>
                                         {/each}
                                     </ul>
                                 </Content>
@@ -539,5 +566,12 @@
     #map {
         width: 800px;
         height: 700px;
+    }
+
+    .panel-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        grid-auto-flow: column;
     }
 </style>
