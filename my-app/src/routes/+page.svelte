@@ -18,6 +18,7 @@
     let closestETATimes;
     let allEtasAfterClosest;
     let accordionItems = [];
+    let toggledRoute = null; // track which routes to show, default to all
 
     let map;
 
@@ -143,32 +144,46 @@
                 map.removeSource(routeId); // also remove the source
             }
 
-            // create a unique color for each route.
-            const color = `hsl(${((index * 360) / routesData.length) % 360}, 100%, 50%)`;
-            map.addLayer({
-                id: routeId,
-                type: "line",
-                source: {
-                    type: "geojson",
-                    data: {
-                        type: "Feature",
-                        properties: {},
-                        geometry: {
-                            type: "LineString",
-                            coordinates: route.path,
+            // Only display the route if its name matches the clicked route name
+            if (route.route_long_name === toggledRoute || toggledRoute === null) {
+                // create a unique color for each route.
+                const color = `hsl(${((index * 360) / routesData.length) % 360}, 100%, 50%)`;
+                map.addLayer({
+                    id: routeId,
+                    type: "line",
+                    source: {
+                        type: "geojson",
+                        data: {
+                            type: "Feature",
+                            properties: {},
+                            geometry: {
+                                type: "LineString",
+                                coordinates: route.path,
+                            },
                         },
                     },
-                },
-                layout: {
-                    "line-join": "round",
-                    "line-cap": "round",
-                },
-                paint: {
-                    "line-color": color,
-                    "line-width": 4,
-                },
-            });
+                    layout: {
+                        "line-join": "round",
+                        "line-cap": "round",
+                    },
+                    paint: {
+                        "line-color": color,
+                        "line-width": 4,
+                    },
+                });
+            }
         });
+    }
+
+    function routeClicked(routeName) {
+        if (routeName === toggledRoute) {
+            toggledRoute = null;
+        }
+        else {
+            toggledRoute = routeName;
+        }
+
+        displayRoutes();
     }
 
     function updateMarkers() {
@@ -431,7 +446,7 @@
                     <Accordion>
                         {#each accordionItems as item, index}
                             <Panel key={index}>
-                                <Header>
+                                <Header on:click={() => routeClicked(item.routeName)}>
                                     <div class="panel-header">
                                         <span>{item.routeName}</span>
                                         <span>{item.closestEtaTimes[0].stopName}</span>
