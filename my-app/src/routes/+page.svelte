@@ -185,6 +185,10 @@
                 busIcon.style.backgroundSize = "contain";
                 busIcon.style.backgroundImage = "url(/data/../uparrow.png)"; // confusued why this /../ is needed
                 busIcon.style.cursor = "pointer";
+                const tripId = entity.vehicle.trip.trip_id;
+                const routeId = trip_to_route[tripId];
+                const routeName = route_to_name[routeId];
+                busIcon.title = routeName;
 
                 const dataTimestamp = entity.vehicle.timestamp;
 
