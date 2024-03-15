@@ -21,6 +21,7 @@
     let accordionItems = [];
     let toggledRoute = null; // track which routes to show, default to all
     let showAllRoutes = true; // show all routes by default
+    let showDeveoper = false; // hide debug stuff by default
 
     let map;
 
@@ -195,7 +196,7 @@
         displayRoutes();
     }
 
-    function toggleClicked() {
+    function toggleRoutes() {
         showAllRoutes = !showAllRoutes;
         displayRoutes();
     }
@@ -459,9 +460,10 @@
                 <div class="accordion-container">
                     <div class="toggler">
                         <p>All Routes</p>
-                        <Switch on:click={() => toggleClicked()} icons={false} />
+                        <Switch on:click={() => toggleRoutes()} icons={false} />
                         <p>Active Routes</p>
                     </div>
+                    <h2>ETAs Nearest to You</h2>
                     <Accordion>
                         {#each accordionItems as item, index}
                             <Panel key={index}>
@@ -531,94 +533,102 @@
                             </Panel>
                         {/each}
                     </Accordion>
+                    <div class="toggler">
+                        <Switch on:click={() => showDeveoper = !showDeveoper} icons={false} />
+                        <p>Developer Mode</p>
+                    </div>
                 </div>
-                <h2>ETAs Nearest to You</h2>
-                {#if trip_to_route && route_to_name && stop_dict}
-                    {#each closestETATimes as routeETA}
-                        <h3>{routeETA.routeName}</h3>
-                        <ul>
-                            {#each routeETA.etaTimes as etaTime}
-                                <li>
-                                    {stop_dict[etaTime.stopId].stop_name} - {new Date(
-                                        etaTime.etaTime * 1000,
-                                    ).toLocaleTimeString([], {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                    })}
-                                </li>
-                            {/each}
-                        </ul>
-                    {/each}
-                {:else}
-                    <p>Loading...</p>
-                {/if}
-                <h2>ETAs After Closest</h2>
-                {#if trip_to_route && route_to_name && stop_dict}
-                    {#each allEtasAfterClosest as routeETA}
-                        <h3>{routeETA.routeName}</h3>
-                        <ul>
-                            {#each routeETA.etaTimes as etaTime}
-                                <li>
-                                    {stop_dict[etaTime.stopId].stop_name} - {new Date(
-                                        etaTime.etaTime * 1000,
-                                    ).toLocaleTimeString([], {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                    })}
-                                </li>
-                            {/each}
-                        </ul>
-                    {/each}
-                {:else}
-                    <p>Loading...</p>
-                {/if}
-                <h2>All ETAs</h2>
-                {#if trip_to_route && route_to_name && stop_dict}
-                    {#each allETATimes as routeETA}
-                        <h3>{routeETA.routeName}</h3>
-                        <ul>
-                            {#each routeETA.etaTimes as etaTime}
-                                <li>
-                                    {stop_dict[etaTime.stopId].stop_name} - {new Date(
-                                        etaTime.etaTime * 1000,
-                                    ).toLocaleTimeString([], {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                    })}
-                                </li>
-                            {/each}
-                        </ul>
-                    {/each}
-                {:else}
-                    <p>Loading...</p>
+                {#if showDeveoper}
+                    <h2>ETAs Nearest to You</h2>
+                    {#if trip_to_route && route_to_name && stop_dict}
+                        {#each closestETATimes as routeETA}
+                            <h3>{routeETA.routeName}</h3>
+                            <ul>
+                                {#each routeETA.etaTimes as etaTime}
+                                    <li>
+                                        {stop_dict[etaTime.stopId].stop_name} - {new Date(
+                                            etaTime.etaTime * 1000,
+                                        ).toLocaleTimeString([], {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                        })}
+                                    </li>
+                                {/each}
+                            </ul>
+                        {/each}
+                    {:else}
+                        <p>Loading...</p>
+                    {/if}
+                    <h2>ETAs After Closest</h2>
+                    {#if trip_to_route && route_to_name && stop_dict}
+                        {#each allEtasAfterClosest as routeETA}
+                            <h3>{routeETA.routeName}</h3>
+                            <ul>
+                                {#each routeETA.etaTimes as etaTime}
+                                    <li>
+                                        {stop_dict[etaTime.stopId].stop_name} - {new Date(
+                                            etaTime.etaTime * 1000,
+                                        ).toLocaleTimeString([], {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                        })}
+                                    </li>
+                                {/each}
+                            </ul>
+                        {/each}
+                    {:else}
+                        <p>Loading...</p>
+                    {/if}
+                    <h2>All ETAs</h2>
+                    {#if trip_to_route && route_to_name && stop_dict}
+                        {#each allETATimes as routeETA}
+                            <h3>{routeETA.routeName}</h3>
+                            <ul>
+                                {#each routeETA.etaTimes as etaTime}
+                                    <li>
+                                        {stop_dict[etaTime.stopId].stop_name} - {new Date(
+                                            etaTime.etaTime * 1000,
+                                        ).toLocaleTimeString([], {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                        })}
+                                    </li>
+                                {/each}
+                            </ul>
+                        {/each}
+                    {:else}
+                        <p>Loading...</p>
+                    {/if}
                 {/if}
             </div>
             <div id="map"></div>
         </div>
-        <h2>User Coordinates</h2>
-        {#if userCoordinates}
-            <p>Longitude: {userCoordinates[0]}</p>
-            <p>Latitude: {userCoordinates[1]}</p>
-        {:else}
-            <p>Click the GPS button...</p>
-        {/if}
-        <h2>ETA Data</h2>
-        {#if jsonETAData}
-            <div>
-                <!-- Render your JSON data here -->
-                <pre>{JSON.stringify(jsonETAData, null, 2)}</pre>
-            </div>
-        {:else}
-            <p>Loading...</p>
-        {/if}
-        <h2>GPS Data</h2>
-        {#if jsonGPSData}
-            <div>
-                <!-- Render your JSON data here -->
-                <pre>{JSON.stringify(jsonGPSData, null, 2)}</pre>
-            </div>
-        {:else}
-            <p>Loading...</p>
+        {#if showDeveoper}
+            <h2>User Coordinates</h2>
+            {#if userCoordinates}
+                <p>Longitude: {userCoordinates[0]}</p>
+                <p>Latitude: {userCoordinates[1]}</p>
+            {:else}
+                <p>Click the GPS button...</p>
+            {/if}
+            <h2>ETA Data</h2>
+            {#if jsonETAData}
+                <div>
+                    <!-- Render your JSON data here -->
+                    <pre>{JSON.stringify(jsonETAData, null, 2)}</pre>
+                </div>
+            {:else}
+                <p>Loading...</p>
+            {/if}
+            <h2>GPS Data</h2>
+            {#if jsonGPSData}
+                <div>
+                    <!-- Render your JSON data here -->
+                    <pre>{JSON.stringify(jsonGPSData, null, 2)}</pre>
+                </div>
+            {:else}
+                <p>Loading...</p>
+            {/if}
         {/if}
     </body>
 </main>
