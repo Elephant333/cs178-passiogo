@@ -453,6 +453,10 @@
             href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css"
             rel="stylesheet"
         />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+            rel="stylesheet"
+        />
     </head>
     <body>
         <div class="container">
@@ -534,7 +538,10 @@
                         {/each}
                     </Accordion>
                     <div class="toggler">
-                        <Switch on:click={() => showDeveoper = !showDeveoper} icons={false} />
+                        <Switch
+                            on:click={() => (showDeveoper = !showDeveoper)}
+                            icons={false}
+                        />
                         <p>Developer Mode</p>
                     </div>
                 </div>
@@ -634,6 +641,10 @@
 </main>
 
 <style>
+    body {
+        font-family: "Roboto", sans-serif;
+    }
+
     .container {
         display: flex;
     }
