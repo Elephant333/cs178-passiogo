@@ -108,9 +108,44 @@ def stopId_to_name():
     with open(output_path, "w") as outfile:
         json.dump(stop_dict, outfile, indent=4)
 
+trip_to_route = json.load(open("../static/data/trip_to_routeId.json"))
+route_to_name = json.load(open("../static/data/routeId_to_name.json"))
+
+def extract_scheduled_stop_times(trip_to_route, route_to_name):
+    allScheduledTimes = {}
+
+    with open("../data/stop_times.txt", 'r') as file:
+        next(file)  # Skip header line
+        for line in file:
+            parts = line.strip().split(',')
+            trip_id, arrival_time, _, stop_id = parts[:4]
+            # print(type(trip_id)) str
+            
+            routeName = route_to_name.get(str(trip_to_route.get(trip_id)))
+            # print(routeName)
+            if routeName is None:
+                continue  # Skip if routeName or trip_to_route mapping is missing
+            
+            if routeName not in allScheduledTimes:
+                allScheduledTimes[routeName] = []
+            
+            allScheduledTimes[routeName].append({
+                'stopId': stop_id,
+                'scheduleTime': arrival_time,
+                'tripId': trip_id,
+            })
+    
+    # Converting to a list of dictionaries for each route
+    allScheduledTimesList = [{'routeName': key, 'scheduleTimes': value} for key, value in allScheduledTimes.items()]
+    output_path = "../static/data/trip_allScheduleTimes.json"
+    with open(output_path, "w") as outfile:
+        json.dump(allScheduledTimesList, outfile, indent=4)
+
+
 
 # get_route_path()
 # get_stops_geo()
 # trip_to_routeId()
 # routeId_to_name()
-stopId_to_name()
+# stopId_to_name()
+extract_scheduled_stop_times(trip_to_route, route_to_name)
