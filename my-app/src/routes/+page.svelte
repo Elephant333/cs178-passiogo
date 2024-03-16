@@ -491,7 +491,19 @@
                                                     1000 -
                                                     Date.now()) /
                                                     (1000 * 60),
-                                            )} mins</span
+                                            )} mins ({Math.floor(
+                                                (item.closestEtaTimes[0]
+                                                    .etaTime *
+                                                    1000 -
+                                                    Date.now()) /
+                                                    (1000 * 60),
+                                            )-1} -{Math.floor(
+                                                (item.closestEtaTimes[0]
+                                                    .etaTime *
+                                                    1000 -
+                                                    Date.now()) /
+                                                    (1000 * 60),
+                                            )+2}mins)</span
                                         >
                                     </div>
                                     <IconButton slot="icon">
