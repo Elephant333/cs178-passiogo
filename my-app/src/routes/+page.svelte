@@ -4,8 +4,7 @@
     import Accordion, { Panel, Header, Content } from "@smui-extra/accordion";
     import IconButton, { Icon } from "@smui/icon-button";
     import Switch from "@smui/switch";
-    import Timetable from './Timetable.svelte';
-
+    import Timetable from "./Timetable.svelte";
 
     let jsonGPSData;
     let jsonETAData;
@@ -41,13 +40,13 @@
 
         console.log("Loading arrow icon...");
 
-        map.loadImage('/data/arrow-icon.png', (error, image) => {
+        map.loadImage("/data/arrow-icon.png", (error, image) => {
             if (error) {
-                console.error('Failed to load the arrow icon:', error);
+                console.error("Failed to load the arrow icon:", error);
                 return;
             }
             console.log("Arrow icon loaded successfully.");
-            map.addImage('arrow-icon', image);
+            map.addImage("arrow-icon", image);
         });
 
         // Old Maplibre user location button
@@ -143,7 +142,9 @@
 
         async function fetchScheduleTimes() {
             try {
-                const response = await fetch("/data/trip_allScheduleTimes.json");
+                const response = await fetch(
+                    "/data/trip_allScheduleTimes.json",
+                );
                 scheduleTimes = await response.json();
             } catch (error) {
                 console.error("Error fetching schedule data:", error);
@@ -226,22 +227,22 @@
                 // Add a symbol layer for arrows with the matching color
                 map.addLayer({
                     id: arrowLayerId,
-                    type: 'symbol',
+                    type: "symbol",
                     source: routeId, // Use the same source as the route line
                     layout: {
-                        'symbol-placement': 'line',
-                        'symbol-spacing': 200, // Adjust as we need to avoid overlapping
-                        'icon-image': 'arrow-icon',
-                        'icon-size': 0.5, 
-                        'icon-rotate': 0,
-                        'icon-allow-overlap': false,
-                        'icon-rotation-alignment': 'map',
-                        'icon-ignore-placement': true,
-                        'icon-padding': 0
+                        "symbol-placement": "line",
+                        "symbol-spacing": 200, // Adjust as we need to avoid overlapping
+                        "icon-image": "arrow-icon",
+                        "icon-size": 0.5,
+                        "icon-rotate": 0,
+                        "icon-allow-overlap": false,
+                        "icon-rotation-alignment": "map",
+                        "icon-ignore-placement": true,
+                        "icon-padding": 0,
                     },
                     paint: {
-                        'icon-color': color // Use the same color as the route line
-                    }
+                        "icon-color": color, // Use the same color as the route line
+                    },
                 });
             }
         });
@@ -403,9 +404,13 @@
 
     function formatTime(timestamp) {
         // Create a date object from the timestamp
-        const date = new Date(timestamp*1000);
+        const date = new Date(timestamp * 1000);
         // Format it to local time string
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+        return date.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
     }
 
     // function filterClosestStopsToUser() {
@@ -443,7 +448,7 @@
     //                     if (scheduleTimeEntry) {
     //                         eta.scheduledTime = scheduleTimeEntry.scheduleTime; // Add scheduledTime directly to each eta entry
     //                     } else {
-    //                         eta.scheduledTime = "Not Available"; 
+    //                         eta.scheduledTime = "Not Available";
     //                     }
     //                 });
     //             }
@@ -454,14 +459,14 @@
     //             });
     //         }
     //     });
-        // console.log(closestETATimes);
-        // closestETATimes now contains both the live ETA and the corresponding scheduled times for each closest stop
+    // console.log(closestETATimes);
+    // closestETATimes now contains both the live ETA and the corresponding scheduled times for each closest stop
     // }
 
     // helper function for console logging
     function logValue(label, value) {
         console.log(`${label}:`, value);
-        return value; 
+        return value;
     }
 
     function filterEtasAfterClosestEtas() {
@@ -518,7 +523,7 @@
             const closestEtaTimes = routeETA.etaTimes.map((etaTime) => ({
                 stopName: stop_dict[etaTime.stopId].stop_name,
                 etaTime: etaTime.etaTime,
-                scheduledTime: etaTime.scheduledTime,
+                scheduledTime: etaTime.upperBound,
             }));
             const allEtasAfterClosestTimes =
                 allEtasAfterClosest
@@ -538,15 +543,17 @@
 
     // handle inappropriate data of scheduledTimes
     function convertScheduledTimeToTimestamp(scheduledTime) {
-        if (typeof scheduledTime === 'string') {
-            const [hours, minutes, seconds] = scheduledTime.split(":").map(Number);
+        if (typeof scheduledTime === "string") {
+            const [hours, minutes, seconds] = scheduledTime
+                .split(":")
+                .map(Number);
             const now = new Date();
             now.setHours(hours, minutes, seconds, 0);
             return now.getTime();
         } else {
             // Return a default timestamp (e.g., current time + 2 minutes) if scheduledTime is not a valid string
             // can be modified
-            return Date.now() + (2 * 60 * 1000);
+            return Date.now() + 2 * 60 * 1000;
         }
     }
 
@@ -559,41 +566,65 @@
 
             routeETA.etaTimes.forEach((etaTime) => {
                 let lowerBound, upperBound;
-                
+
                 let scheduledTimeInSeconds = null;
 
                 // Find the corresponding scheduled time entry
-                const routeSchedule = scheduleTimes.find(schedule => schedule.routeName === routeETA.routeName);
-                const scheduleTimeEntry = routeSchedule?.scheduleTimes.find(schedule => 
-                    schedule.stopId === etaTime.stopId && schedule.tripId === etaTime.tripId);
+                const routeSchedule = scheduleTimes.find(
+                    (schedule) => schedule.routeName === routeETA.routeName,
+                );
+                const scheduleTimeEntry = routeSchedule?.scheduleTimes.find(
+                    (schedule) =>
+                        schedule.stopId === etaTime.stopId &&
+                        schedule.tripId === etaTime.tripId,
+                );
                 if (scheduleTimeEntry && scheduleTimeEntry.scheduleTime) {
-                    scheduledTimeInSeconds = convertScheduledTimeToTimestamp(scheduleTimeEntry.scheduleTime);
-                    
+                    scheduledTimeInSeconds = convertScheduledTimeToTimestamp(
+                        scheduleTimeEntry.scheduleTime,
+                    );
                 }
                 // Check both times are not in the past and within the 10-minute interval, if scheduledTime exists
                 const isETAValid = etaTime.etaTime >= currentTimeInSeconds - 60;
-                const isScheduledValid = scheduledTimeInSeconds ? scheduledTimeInSeconds >= currentTimeInSeconds - 60 : false;
-                const timeDifference = scheduledTimeInSeconds ? Math.abs(etaTime.etaTime - scheduledTimeInSeconds) : null;
+                const isScheduledValid = scheduledTimeInSeconds
+                    ? scheduledTimeInSeconds >= currentTimeInSeconds - 60
+                    : false;
+                const timeDifference = scheduledTimeInSeconds
+                    ? Math.abs(etaTime.etaTime - scheduledTimeInSeconds)
+                    : null;
 
-                if (isETAValid && (!scheduledTimeInSeconds || (isScheduledValid && timeDifference <= 10 * 60))) {
+                if (
+                    isETAValid &&
+                    (!scheduledTimeInSeconds ||
+                        (isScheduledValid && timeDifference <= 10 * 60))
+                ) {
                     // Both times are available and within the 10-minute window
                     if (scheduledTimeInSeconds && timeDifference <= 10 * 60) {
-                        lowerBound = Math.min(etaTime.etaTime, scheduledTimeInSeconds);
-                        upperBound = Math.max(etaTime.etaTime, scheduledTimeInSeconds);
+                        lowerBound = Math.min(
+                            etaTime.etaTime,
+                            scheduledTimeInSeconds,
+                        );
+                        upperBound = Math.max(
+                            etaTime.etaTime,
+                            scheduledTimeInSeconds,
+                        );
                     } else {
                         // Scheduled time is not available or valid, use ETA as lower and ETA + 2 minutes as upper
                         lowerBound = etaTime.etaTime;
                         upperBound = etaTime.etaTime + 2 * 60; // Adding 2 minutes to ETA
                     }
-                    console.log(lowerBound, upperBound)
+                    console.log(lowerBound, upperBound);
                     // Adjust the etaTime object to include calculated bounds and push to the processed ETAs array
                     processedETAs.push({
                         ...etaTime,
                         lowerBound: lowerBound,
                         upperBound: upperBound,
                         // Include human-readable bounds if necessary, e.g., for display
-                        displayLowerBound: new Date(lowerBound * 1000).toLocaleTimeString(),
-                        displayUpperBound: new Date(upperBound * 1000).toLocaleTimeString(),
+                        displayLowerBound: new Date(
+                            lowerBound * 1000,
+                        ).toLocaleTimeString(),
+                        displayUpperBound: new Date(
+                            upperBound * 1000,
+                        ).toLocaleTimeString(),
                     });
                 }
             });
@@ -609,7 +640,6 @@
             }
         });
     }
-
 </script>
 
 <main>
@@ -661,13 +691,26 @@
                                         <span>
                                             <!-- {logValue(item.closestEtaTimes[0]?.scheduledTime)}
                                             {logValue(item.closestEtaTimes[0]?.etaTime)} -->
-                                            {Math.floor((item.closestEtaTimes[0].etaTime * 1000 - Date.now()) / (1000 * 60)
-                                                )} mins 
-                                            ({Math.floor((item.closestEtaTimes[0].etaTime * 1000 - Date.now()) / (1000 * 60)
-                                                )
-                                            } - 
-                                            {Math.floor((item.closestEtaTimes[0]?.scheduledTime) - Date.now()) / (1000 * 60)
-                                                } mins)
+                                            {Math.floor(
+                                                (item.closestEtaTimes[0]
+                                                    .etaTime *
+                                                    1000 -
+                                                    Date.now()) /
+                                                    (1000 * 60),
+                                            )} mins ({Math.floor(
+                                                (item.closestEtaTimes[0]
+                                                    .etaTime *
+                                                    1000 -
+                                                    Date.now()) /
+                                                    (1000 * 60),
+                                            )} -
+                                            {Math.floor(
+                                                (item.closestEtaTimes[0]
+                                                    ?.scheduledTime *
+                                                    1000 -
+                                                    Date.now()) /
+                                                    (1000 * 60),
+                                            )} mins)
                                         </span>
                                         <!-- <span>
                                             {Math.floor(
@@ -681,7 +724,6 @@
                                                 )
                                             )} mins)
                                         </span> -->
-                                                                               
                                     </div>
                                     <IconButton slot="icon">
                                         <Icon class="material-icons"
@@ -793,6 +835,28 @@
             </div>
             <div id="map"></div>
         </div>
+        <!-- Timetable rendering -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Stop</th>
+                    <th colspan="100%">Live ETAs</th>
+                </tr>
+            </thead>
+            <tbody>
+                {#each allETATimes as { routeName, etaTimes }}
+                    <tr>
+                        <td colspan="100%"><strong>Route: {routeName}</strong></td>
+                    </tr>
+                    {#each etaTimes as { stopId, etaTime, tripId, distanceToUser }}
+                        <tr>
+                            <td>{stop_dict[stopId].stop_name}</td>
+                            <td>{formatTime(etaTime)}</td>
+                        </tr>
+                    {/each}
+                {/each}
+            </tbody>
+        </table>
         {#if showDeveoper}
             <h2>User Coordinates</h2>
             {#if userCoordinates}
@@ -821,70 +885,33 @@
             {/if}
         {/if}
     </body>
-    <!-- Timetable rendering -->
-    <table>
-        <thead>
-            <tr>
-                <th>Stop</th>
-                <th colspan="100%">Live ETAs</th>
-            </tr>
-        </thead>
-        <tbody>
-            {#each allETATimes as { routeName, etaTimes }}
-                <tr>
-                    <td colspan="100%"><strong>Route: {routeName}</strong></td>
-                </tr>
-                {#each etaTimes as { stopId, etaTime, tripId, distanceToUser }}
-                    <tr>
-                        <td>{stop_dict[stopId].stop_name}</td>
-                        <td>{formatTime(etaTime)}</td>
-                    </tr>
-                {/each}
-            {/each}
-        </tbody>
-    </table>
-   
 </main>
 
-
-
-
-
 <style>
-     /* styles for the table here */
-     table {
-        font-size: 0.8rem; /* Adjust as needed */
-        width: 100%; /* Adjust if you want a smaller width */
+    table {
+        font-size: 0.8rem;
+        width: 100%;
         border-collapse: collapse;
     }
 
     /* Reduce padding in table cells */
-    th, td {
-        padding: 0.3rem; /* Adjust as needed */
+    th,
+    td {
+        padding: 0.3rem;
         border: 1px solid #ccc;
-        text-align: left; /* or center, as preferred */
+        text-align: left;
     }
 
-    /* Adjust header styles if needed */
+    /* table header styles */
     th {
         background-color: #f5f5f5;
     }
 
-    /* If you have specific classes for your rows or cells, adjust them as well */
-    .route-row {
-        background-color: #e8e8e8; /* Example for route header rows */
-    }
-    
-    /* You can also style alternating rows for better readability */
+    /* table alternating rows */
     tr:nth-child(even) {
         background-color: #f2f2f2;
     }
 
-    /* Style for compactness */
-    .compact-cell {
-        /* Further reduce padding for a specific cell class if needed */
-        padding: 0.2rem;
-    }
     body {
         font-family: "Roboto", sans-serif;
     }
