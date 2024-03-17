@@ -35,6 +35,17 @@
             zoom: 13.75,
         });
 
+        console.log("Loading arrow icon...");
+
+        map.loadImage('/data/arrow-icon.png', (error, image) => {
+            if (error) {
+                console.error('Failed to load the arrow icon:', error);
+                return;
+            }
+            console.log("Arrow icon loaded successfully.");
+            map.addImage('arrow-icon', image);
+        });
+
         // Old Maplibre user location button
         // let geolocate = new maplibregl.GeolocateControl({
         //     positionOptions: {
@@ -151,12 +162,21 @@
     function displayRoutes() {
         routesData.forEach((route, index) => {
             const routeId = `route-${route.route_id}`;
+            const arrowLayerId = `${routeId}-arrows`; // ID for the arrow layer
 
-            // check if the layer already exists
+            // Remove existing arrow layer first
+            if (map.getLayer(arrowLayerId)) {
+                map.removeLayer(arrowLayerId);
+            }
+
+            // Remove existing route layer
             if (map.getLayer(routeId)) {
-                // if it does, remove the layer and its source
                 map.removeLayer(routeId);
-                map.removeSource(routeId); // also remove the source
+            }
+
+            // Now, it's safe to remove the source as no layers are using it
+            if (map.getSource(routeId)) {
+                map.removeSource(routeId);
             }
 
             // Only display the route if its name matches the clicked route name
@@ -171,20 +191,24 @@
             ) {
                 // create a unique color for each route.
                 const color = `hsl(${((index * 360) / routesData.length) % 360}, 100%, 50%)`;
+                // Add the source for the new route
+                map.addSource(routeId, {
+                    type: "geojson",
+                    data: {
+                        type: "Feature",
+                        properties: {},
+                        geometry: {
+                            type: "LineString",
+                            coordinates: route.path,
+                        },
+                    },
+                });
+
+                // Add the route line layer
                 map.addLayer({
                     id: routeId,
                     type: "line",
-                    source: {
-                        type: "geojson",
-                        data: {
-                            type: "Feature",
-                            properties: {},
-                            geometry: {
-                                type: "LineString",
-                                coordinates: route.path,
-                            },
-                        },
-                    },
+                    source: routeId,
                     layout: {
                         "line-join": "round",
                         "line-cap": "round",
@@ -193,6 +217,27 @@
                         "line-color": color,
                         "line-width": 4,
                     },
+                });
+
+                // Add a symbol layer for arrows with the matching color
+                map.addLayer({
+                    id: arrowLayerId,
+                    type: 'symbol',
+                    source: routeId, // Use the same source as the route line
+                    layout: {
+                        'symbol-placement': 'line',
+                        'symbol-spacing': 200, // Adjust as we need to avoid overlapping
+                        'icon-image': 'arrow-icon',
+                        'icon-size': 0.5, 
+                        'icon-rotate': 0,
+                        'icon-allow-overlap': false,
+                        'icon-rotation-alignment': 'map',
+                        'icon-ignore-placement': true,
+                        'icon-padding': 0
+                    },
+                    paint: {
+                        'icon-color': color // Use the same color as the route line
+                    }
                 });
             }
         });
@@ -550,52 +595,6 @@
                 closestETATimes.push({
                     routeName: routeETA.routeName,
                     etaTimes: processedETAs,
-                });
-            }
-        });
-    }
-
-    // hasn't tested this new function
-    function newFilterClosestStopsToUser() {
-        closestETATimes = [];
-        const currentTimeInSeconds = Math.floor(Date.now() / 1000);
-
-        allETATimes.forEach((routeETA) => {
-            let closestStopsETA = routeETA.etaTimes.filter(etaTime => {
-                // Ensure ETA is in the future
-                return etaTime.etaTime >= currentTimeInSeconds;
-            })
-            .map(etaTime => {
-                // Try to find and assign scheduledTime
-                const routeSchedule = scheduleTimes.find(schedule => schedule.routeName === routeETA.routeName);
-                const scheduleTimeEntry = routeSchedule?.scheduleTimes.find(schedule => 
-                    schedule.stopId === etaTime.stopId && schedule.tripId === etaTime.tripId);
-
-                if (scheduleTimeEntry) {
-                    etaTime.scheduledTime = scheduleTimeEntry.scheduleTime;
-                    // Convert scheduledTime to timestamp for comparison and adjustment
-                    const scheduledTimestamp = convertScheduledTimeToTimestamp(etaTime.scheduledTime);
-                    const timeDifference = Math.abs(scheduledTimestamp / 1000 - etaTime.etaTime);
-
-                    // If scheduled time is too far from ETA or in the past, adjust to default uncertainty
-                    if (timeDifference > 10 * 60 || scheduledTimestamp < currentTimeInSeconds) {
-                        etaTime.scheduledTime = "Default +2"; // Indicate default uncertainty is used
-                    }
-                } else {
-                    etaTime.scheduledTime = "Not Available";
-                }
-                return etaTime;
-            })
-            .filter(etaTime => {
-                // we can also filter out entries with "Not Available" if desired
-                return etaTime.scheduledTime !== "Not Available" || etaTime.scheduledTime !== "Default +2";
-            });
-
-            if (closestStopsETA.length > 0) {
-                closestStopsETA.sort((a, b) => a.etaTime - b.etaTime);
-                closestETATimes.push({
-                    routeName: routeETA.routeName,
-                    etaTimes: closestStopsETA,
                 });
             }
         });
