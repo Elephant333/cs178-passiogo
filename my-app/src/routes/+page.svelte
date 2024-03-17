@@ -4,6 +4,8 @@
     import Accordion, { Panel, Header, Content } from "@smui-extra/accordion";
     import IconButton, { Icon } from "@smui/icon-button";
     import Switch from "@smui/switch";
+    import Timetable from './Timetable.svelte';
+
 
     let jsonGPSData;
     let jsonETAData;
@@ -26,6 +28,8 @@
     let showDeveoper = false; // hide debug stuff by default
 
     let map;
+
+    let timetableData = [];
 
     onMount(() => {
         map = new maplibregl.Map({
@@ -395,7 +399,13 @@
                 etaTimes,
             }),
         );
-        // console.log(allETATimes);
+    }
+
+    function formatTime(timestamp) {
+        // Create a date object from the timestamp
+        const date = new Date(timestamp*1000);
+        // Format it to local time string
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
     }
 
     // function filterClosestStopsToUser() {
@@ -811,9 +821,70 @@
             {/if}
         {/if}
     </body>
+    <!-- Timetable rendering -->
+    <table>
+        <thead>
+            <tr>
+                <th>Stop</th>
+                <th colspan="100%">Live ETAs</th>
+            </tr>
+        </thead>
+        <tbody>
+            {#each allETATimes as { routeName, etaTimes }}
+                <tr>
+                    <td colspan="100%"><strong>Route: {routeName}</strong></td>
+                </tr>
+                {#each etaTimes as { stopId, etaTime, tripId, distanceToUser }}
+                    <tr>
+                        <td>{stop_dict[stopId].stop_name}</td>
+                        <td>{formatTime(etaTime)}</td>
+                    </tr>
+                {/each}
+            {/each}
+        </tbody>
+    </table>
+   
 </main>
 
+
+
+
+
 <style>
+     /* styles for the table here */
+     table {
+        font-size: 0.8rem; /* Adjust as needed */
+        width: 100%; /* Adjust if you want a smaller width */
+        border-collapse: collapse;
+    }
+
+    /* Reduce padding in table cells */
+    th, td {
+        padding: 0.3rem; /* Adjust as needed */
+        border: 1px solid #ccc;
+        text-align: left; /* or center, as preferred */
+    }
+
+    /* Adjust header styles if needed */
+    th {
+        background-color: #f5f5f5;
+    }
+
+    /* If you have specific classes for your rows or cells, adjust them as well */
+    .route-row {
+        background-color: #e8e8e8; /* Example for route header rows */
+    }
+    
+    /* You can also style alternating rows for better readability */
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    /* Style for compactness */
+    .compact-cell {
+        /* Further reduce padding for a specific cell class if needed */
+        padding: 0.2rem;
+    }
     body {
         font-family: "Roboto", sans-serif;
     }
