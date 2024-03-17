@@ -17,6 +17,8 @@
     let route_to_name;
     let stop_dict;
     let closestETATimes;
+    let scheduleTimes;
+    let closestScheduleTimes;
     let allEtasAfterClosest;
     let accordionItems = [];
     let toggledRoute = null; // track which routes to show, default to all
@@ -124,12 +126,22 @@
             }
         }
 
+        async function fetchScheduleTimes() {
+            try {
+                const response = await fetch("/data/trip_allScheduleTimes.json");
+                scheduleTimes = await response.json();
+            } catch (error) {
+                console.error("Error fetching schedule data:", error);
+            }
+        }
+
         fetchData();
         fetchStops();
         fetchRoutes();
         fetchTripToRoute();
         fetchRouteToName();
         fetchStopToName();
+        fetchScheduleTimes();
 
         const interval = setInterval(fetchData, 1000);
 
@@ -338,15 +350,18 @@
                 etaTimes,
             }),
         );
+        console.log(allETATimes);
     }
 
     function filterClosestStopsToUser() {
         closestETATimes = [];
+        closestScheduleTimes = []
 
         const currentTimeInSeconds = Math.floor(Date.now() / 1000);
 
         allETATimes.forEach((routeETA) => {
             let closestStopsETA = [];
+            let closestStopsSchedule = [];
             let closestStopDistance = Infinity;
 
             routeETA.etaTimes.forEach((etaTime) => {
@@ -368,6 +383,26 @@
                     routeName: routeETA.routeName,
                     etaTimes: closestStopsETA,
                 });
+
+                // Find the corresponding schedule times for these closest stops
+                let routeSchedule = scheduleTimes.find(schedule => schedule.routeName === routeETA.routeName);
+                if (routeSchedule) {
+                    closestStopsETA.forEach((eta) => {
+                        let scheduleTime = routeSchedule.scheduleTimes.find(schedule => schedule.stopId === eta.stopId);
+                        if (scheduleTime) {
+                            closestScheduleTimes.push({
+                                routeName: routeETA.routeName,
+                                etaTime: eta.etaTime,
+                                scheduleTime: scheduleTime.scheduleTime,
+                                stopId: eta.stopId,
+                                tripId: eta.tripId,
+                                distanceToUser: eta.distanceToUser
+                            });
+                        }
+                    });
+                }
+                console.log("my schedules",closestScheduleTimes);
+                console.log("my etas", closestETATimes)
             }
         });
     }
