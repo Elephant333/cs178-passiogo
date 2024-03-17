@@ -555,62 +555,6 @@
         });
     }
 
-
-    // function filterClosestStopsToUser() {
-    //     closestETATimes = [];
-    //     const currentTimeInSeconds = Math.floor(Date.now() / 1000);
-
-    //     allETATimes.forEach((routeETA) => {
-    //         let closestStopsETA = [];
-
-    //         routeETA.etaTimes.forEach((etaTime) => {
-    //             // Initially assume we might not have a valid scheduled time
-    //             let scheduledTimeInSeconds = null;
-
-    //             // Find the corresponding scheduled time entry
-    //             const routeSchedule = scheduleTimes.find(schedule => schedule.routeName === routeETA.routeName);
-    //             const scheduleTimeEntry = routeSchedule?.scheduleTimes.find(schedule => 
-    //                 schedule.stopId === etaTime.stopId && schedule.tripId === etaTime.tripId);
-                
-    //             if (scheduleTimeEntry && scheduleTimeEntry.scheduleTime) {
-    //                 scheduledTimeInSeconds = convertScheduledTimeToTimestamp(scheduleTimeEntry.scheduleTime);
-                    
-    //             }
-    //             // Determine the validity of both etaTime and scheduledTime based on current time, filter out more than 1min past current time
-    //             const isValidETA = etaTime.etaTime >= currentTimeInSeconds - 60;
-    //             const isValidScheduledTime = scheduledTimeInSeconds !== null && scheduledTimeInSeconds >= currentTimeInSeconds - 60;
-                
-    //             // Calculate time differences if both times are valid and not in the past
-    //             if (isValidETA && isValidScheduledTime) {
-    //                 const timeDiff = Math.abs(etaTime.etaTime - scheduledTimeInSeconds);
-
-    //                 // Exclude pairs that differ by more than 10 minutes
-    //                 if (timeDiff <= 10 * 60) {
-    //                     // Use the earlier time as the lower bound
-    //                     etaTime.etaTime = Math.min(etaTime.etaTime, scheduledTimeInSeconds);
-    //                     etaTime.scheduledTime = scheduledTimeEntry ? scheduleTimeEntry.scheduleTime : "Not Available";
-                        
-    //                     closestStopsETA.push(etaTime);
-    //                 }
-    //             } else if (isValidETA) { // If only ETA is valid, consider it with default adjustment
-    //                 etaTime.scheduledTime = "Not Available"; // Indicate no valid scheduled time
-    //                 closestStopsETA.push(etaTime);
-    //             }
-    //         });
-
-    //         if (closestStopsETA.length > 0) {
-    //             closestStopsETA.sort((a, b) => a.etaTime - b.etaTime);
-                
-    //             closestETATimes.push({
-    //                 routeName: routeETA.routeName,
-    //                 etaTimes: closestStopsETA,
-    //             });
-    //         }
-    //     });
-    // }
-
-
-
     // hasn't tested this new function
     function newFilterClosestStopsToUser() {
         closestETATimes = [];
