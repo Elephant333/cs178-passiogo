@@ -350,18 +350,16 @@
                 etaTimes,
             }),
         );
-        console.log(allETATimes);
+        // console.log(allETATimes);
     }
 
     function filterClosestStopsToUser() {
         closestETATimes = [];
-        closestScheduleTimes = []
 
         const currentTimeInSeconds = Math.floor(Date.now() / 1000);
 
         allETATimes.forEach((routeETA) => {
             let closestStopsETA = [];
-            let closestStopsSchedule = [];
             let closestStopDistance = Infinity;
 
             routeETA.etaTimes.forEach((etaTime) => {
@@ -377,34 +375,38 @@
             closestStopsETA = closestStopsETA.filter(
                 (etaTime) => etaTime.etaTime - currentTimeInSeconds >= -5 * 60,
             );
+
             if (closestStopsETA.length > 0) {
                 closestStopsETA.sort((a, b) => a.etaTime - b.etaTime);
+
+                // Find the corresponding schedule times for these closest stops and add them to the objects
+                let routeSchedule = scheduleTimes.find(schedule => schedule.routeName === routeETA.routeName);
+                if (routeSchedule) {
+                    closestStopsETA.forEach((eta) => {
+                        // need to match both the trip ID and stop ID
+                        let scheduleTimeEntry = routeSchedule.scheduleTimes.find(schedule => schedule.stopId === eta.stopId && schedule.tripId === eta.tripId);
+                        if (scheduleTimeEntry) {
+                            eta.scheduledTime = scheduleTimeEntry.scheduleTime; // Add scheduledTime directly to each eta entry
+                        } else {
+                            eta.scheduledTime = "Not Available"; 
+                        }
+                    });
+                }
+
                 closestETATimes.push({
                     routeName: routeETA.routeName,
                     etaTimes: closestStopsETA,
                 });
-
-                // Find the corresponding schedule times for these closest stops
-                let routeSchedule = scheduleTimes.find(schedule => schedule.routeName === routeETA.routeName);
-                if (routeSchedule) {
-                    closestStopsETA.forEach((eta) => {
-                        let scheduleTime = routeSchedule.scheduleTimes.find(schedule => schedule.stopId === eta.stopId);
-                        if (scheduleTime) {
-                            closestScheduleTimes.push({
-                                routeName: routeETA.routeName,
-                                etaTime: eta.etaTime,
-                                scheduleTime: scheduleTime.scheduleTime,
-                                stopId: eta.stopId,
-                                tripId: eta.tripId,
-                                distanceToUser: eta.distanceToUser
-                            });
-                        }
-                    });
-                }
-                console.log("my schedules",closestScheduleTimes);
-                console.log("my etas", closestETATimes)
             }
         });
+        // console.log(closestETATimes);
+        // closestETATimes now contains both the live ETA and the corresponding scheduled times for each closest stop
+    }
+
+    // helper function for console logging
+    function logValue(label, value) {
+        console.log(`${label}:`, value);
+        return value; 
     }
 
     function filterEtasAfterClosestEtas() {
@@ -461,6 +463,7 @@
             const closestEtaTimes = routeETA.etaTimes.map((etaTime) => ({
                 stopName: stop_dict[etaTime.stopId].stop_name,
                 etaTime: etaTime.etaTime,
+                scheduledTime: etaTime.scheduledTime,
             }));
             const allEtasAfterClosestTimes =
                 allEtasAfterClosest
@@ -477,6 +480,21 @@
             };
         });
     }
+
+    function convertScheduledTimeToTimestamp(scheduledTime) {
+        if (typeof scheduledTime === 'string') {
+            const [hours, minutes, seconds] = scheduledTime.split(":").map(Number);
+            const now = new Date();
+            now.setHours(hours, minutes, seconds, 0);
+            return now.getTime();
+        } else {
+            // Handle the undefined or non-string `scheduledTime` appropriately
+            // For example, return the current timestamp or a default timestamp
+            return Date.now();
+        }
+    }
+
+
 </script>
 
 <main>
@@ -525,27 +543,31 @@
                                                 minute: "2-digit",
                                             })}</span
                                         >
-                                        <span
-                                            >{Math.floor(
-                                                (item.closestEtaTimes[0]
-                                                    .etaTime *
-                                                    1000 -
-                                                    Date.now()) /
-                                                    (1000 * 60),
-                                            )} mins ({Math.floor(
-                                                (item.closestEtaTimes[0]
-                                                    .etaTime *
-                                                    1000 -
-                                                    Date.now()) /
-                                                    (1000 * 60),
-                                            )-1} -{Math.floor(
-                                                (item.closestEtaTimes[0]
-                                                    .etaTime *
-                                                    1000 -
-                                                    Date.now()) /
-                                                    (1000 * 60),
-                                            )+2}mins)</span
-                                        >
+                                        <span>
+                                            <!-- {logValue(item.closestEtaTimes[0]?.scheduledTime)}
+                                            {logValue(item.closestEtaTimes[0]?.etaTime)} -->
+                                            <!-- figure out the algo here -->
+                                            {Math.floor((item.closestEtaTimes[0].etaTime * 1000 - Date.now()) / (1000 * 60)
+                                                )} mins 
+                                            ({Math.floor((item.closestEtaTimes[0].etaTime * 1000 - Date.now()) / (1000 * 60)
+                                                )
+                                            } - 
+                                            {Math.floor((convertScheduledTimeToTimestamp(item.closestEtaTimes[0]?.scheduledTime) - Date.now()) / (1000 * 60)
+                                                )} mins)
+                                        </span>
+                                        <!-- <span>
+                                            {Math.floor(
+                                                logValue("ETA Time Difference",
+                                                    (item.closestEtaTimes[0].etaTime * 1000
+                                                ))
+                                            )} mins 
+                                            {Math.floor(
+                                                logValue("Scheduled Time Difference",
+                                                    (convertScheduledTimeToTimestamp(item.closestEtaTimes[0]?.scheduledTime))
+                                                )
+                                            )} mins)
+                                        </span> -->
+                                                                               
                                     </div>
                                     <IconButton slot="icon">
                                         <Icon class="material-icons"
