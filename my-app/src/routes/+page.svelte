@@ -30,6 +30,22 @@
 
     let timetableData = [];
 
+    // Reactive statement to call updateNearestStopAnnouncement
+    // whenever closestETATimes changes.
+    $: if (closestETATimes?.length > 0) updateNearestStopAnnouncement();
+
+    // This function updates the announcement for screen readers
+    function updateNearestStopAnnouncement() {
+        const announcementElement = document.getElementById('stopAnnouncement');
+        if (announcementElement) {
+            const nearestStop = closestETATimes[0].etaTimes[0]; 
+            const etaMins = Math.floor((nearestStop.etaTime * 1000 - Date.now()) / (1000 * 60));
+            const scheduleMins = Math.floor((nearestStop.scheduledTime * 1000 - Date.now()) / (1000 * 60));
+            // console.log(closestETATimes[0])
+            announcementElement.textContent = `Your nearest stop is ${stop_dict[nearestStop.stopId].stop_name} on route ${closestETATimes[0].routeName} , ETA is ${etaMins} mins away. Due to uncertainty, it could be betweenit ${etaMins} and ${scheduleMins} mins.`;
+        }
+    }
+
     onMount(() => {
         map = new maplibregl.Map({
             container: "map",
@@ -89,6 +105,7 @@
             updateMarkers();
             extractStopETATimes();
             filterClosestStopsToUser();
+            // console.log(closestETATimes[0]);
             filterEtasAfterClosestEtas();
             createAccordionItems();
         }
@@ -406,7 +423,6 @@
                         scheduledTime: scheduledTime, 
                     });
 
-                    console.log(allETATimes)
                 }
             });
         });
@@ -467,7 +483,7 @@
             }
         });
     }
-
+    
     // helper function for console logging
     function logValue(label, value) {
         console.log(`${label}:`, value);
@@ -561,6 +577,8 @@
             return Date.now() + 2*60*1000;
         }
     }
+
+
 </script>
 
 <main>
@@ -581,6 +599,7 @@
         <div class="container">
             <div class="sidebar">
                 <div class="accordion-container">
+                    <div aria-live="polite" class="visually-hidden" id="stopAnnouncement"></div>
                     <div class="toggler">
                         <p>All Routes</p>
                         <Switch on:click={() => toggleRoutes()} icons={false} />
@@ -868,4 +887,17 @@
     .toggler {
         display: flex;
     }
+
+    .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+    }
+
+
 </style>
