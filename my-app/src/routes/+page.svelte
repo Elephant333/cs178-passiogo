@@ -652,18 +652,6 @@
                                                     (1000 * 60),
                                             )} mins)
                                         </span>
-                                        <!-- <span>
-                                            {Math.floor(
-                                                logValue("ETA Time Difference",
-                                                    (item.closestEtaTimes[0].etaTime * 1000
-                                                ))
-                                            )} mins 
-                                            {Math.floor(
-                                                logValue("Scheduled Time Difference",
-                                                    (convertScheduledTimeToTimestamp(item.closestEtaTimes[0]?.scheduledTime))
-                                                )
-                                            )} mins)
-                                        </span> -->
                                     </div>
                                     <IconButton slot="icon">
                                         <Icon class="material-icons"
