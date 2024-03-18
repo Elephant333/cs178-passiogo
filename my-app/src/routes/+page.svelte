@@ -389,6 +389,7 @@
                         etaTime: etaTime,
                         tripId: tripId,
                         distanceToUser: distance,
+                        scheduledTime: etaTime + 2 * 60, // by default +2 if no other scheduled time is found
                     });
                 }
             });
@@ -413,55 +414,141 @@
         });
     }
 
-    // function filterClosestStopsToUser() {
-    //     closestETATimes = [];
+    function filterClosestStopsToUser() {
+        closestETATimes = [];
 
-    //     const currentTimeInSeconds = Math.floor(Date.now() / 1000);
+        const currentTimeInSeconds = Math.floor(Date.now() / 1000);
 
-    //     allETATimes.forEach((routeETA) => {
-    //         let closestStopsETA = [];
-    //         let closestStopDistance = Infinity;
+        allETATimes.forEach((routeETA) => {
+            let closestStopsETA = [];
+            let closestStopDistance = Infinity;
 
-    //         routeETA.etaTimes.forEach((etaTime) => {
-    //             if (etaTime.distanceToUser < closestStopDistance) {
-    //                 closestStopDistance = etaTime.distanceToUser;
-    //                 closestStopsETA = [etaTime];
-    //             } else if (etaTime.distanceToUser === closestStopDistance) {
-    //                 closestStopsETA.push(etaTime);
-    //             }
-    //         });
+            routeETA.etaTimes.forEach((etaTime) => {
+                if (etaTime.distanceToUser < closestStopDistance) {
+                    closestStopDistance = etaTime.distanceToUser;
+                    closestStopsETA = [etaTime];
+                } else if (etaTime.distanceToUser === closestStopDistance) {
+                    closestStopsETA.push(etaTime);
+                }
+            });
 
-    //         // Filter out ETA times more than 5 minutes past the current time
-    //         closestStopsETA = closestStopsETA.filter(
-    //             (etaTime) => etaTime.etaTime - currentTimeInSeconds >= -1 * 60,
-    //         );
+            // Filter out ETA times more than 2 minutes past the current time
+            closestStopsETA = closestStopsETA.filter(
+                (etaTime) => etaTime.etaTime - currentTimeInSeconds >= -2 * 60,
+            );
 
-    //         if (closestStopsETA.length > 0) {
-    //             closestStopsETA.sort((a, b) => a.etaTime - b.etaTime);
+            if (closestStopsETA.length > 0) {
+                closestStopsETA.sort((a, b) => a.etaTime - b.etaTime);
 
-    //             // Find the corresponding schedule times for these closest stops and add them to the objects
-    //             let routeSchedule = scheduleTimes.find(schedule => schedule.routeName === routeETA.routeName);
-    //             if (routeSchedule) {
-    //                 closestStopsETA.forEach((eta) => {
-    //                     // need to match both the trip ID and stop ID
-    //                     let scheduleTimeEntry = routeSchedule.scheduleTimes.find(schedule => schedule.stopId === eta.stopId && schedule.tripId === eta.tripId);
-    //                     if (scheduleTimeEntry) {
-    //                         eta.scheduledTime = scheduleTimeEntry.scheduleTime; // Add scheduledTime directly to each eta entry
-    //                     } else {
-    //                         eta.scheduledTime = "Not Available";
-    //                     }
-    //                 });
-    //             }
+                // Find the corresponding schedule times for these closest stops and add them to the objects
+                let routeSchedule = scheduleTimes.find(schedule => schedule.routeName === routeETA.routeName);
+                if (routeSchedule) {
+                    closestStopsETA.forEach((eta) => {
+                        // need to match both the trip ID and stop ID
+                        let scheduleTimeEntry = routeSchedule.scheduleTimes.find(schedule => schedule.stopId === eta.stopId && schedule.tripId === eta.tripId);
+                        if (scheduleTimeEntry && scheduleTimeEntry.scheduleTime) {
+                            let scheduledTimeInSeconds = convertScheduledTimeToTimestamp(
+                                scheduleTimeEntry.scheduleTime,
+                            );
+                            // console.log(scheduledTimeInSeconds);
+                            // console.log(eta.etaTime);
+                            if (scheduledTimeInSeconds > eta.etaTime) {
+                                eta.scheduledTime = scheduledTimeInSeconds;
+                            }
+                        }
+                    });
+                }
+                closestETATimes.push({
+                    routeName: routeETA.routeName,
+                    etaTimes: closestStopsETA,
+                });
+            }
+        });
+    }
+    
+    // I've left this untouched, Danni feel free to continue adjusting your code here!
+    function newFilterClosestStopsToUser() {
+        closestETATimes = [];
+        const currentTimeInSeconds = Math.floor(Date.now() / 1000);
 
-    //             closestETATimes.push({
-    //                 routeName: routeETA.routeName,
-    //                 etaTimes: closestStopsETA,
-    //             });
-    //         }
-    //     });
-    // console.log(closestETATimes);
-    // closestETATimes now contains both the live ETA and the corresponding scheduled times for each closest stop
-    // }
+        allETATimes.forEach((routeETA) => {
+            let processedETAs = [];
+
+            routeETA.etaTimes.forEach((etaTime) => {
+                let lowerBound, upperBound;
+
+                let scheduledTimeInSeconds = null;
+
+                // Find the corresponding scheduled time entry
+                const routeSchedule = scheduleTimes.find(
+                    (schedule) => schedule.routeName === routeETA.routeName,
+                );
+                const scheduleTimeEntry = routeSchedule?.scheduleTimes.find(
+                    (schedule) =>
+                        schedule.stopId === etaTime.stopId &&
+                        schedule.tripId === etaTime.tripId,
+                );
+                if (scheduleTimeEntry && scheduleTimeEntry.scheduleTime) {
+                    scheduledTimeInSeconds = convertScheduledTimeToTimestamp(
+                        scheduleTimeEntry.scheduleTime,
+                    );
+                }
+                // Check both times are not in the past and within the 10-minute interval, if scheduledTime exists
+                const isETAValid = etaTime.etaTime >= currentTimeInSeconds - 60;
+                const isScheduledValid = scheduledTimeInSeconds
+                    ? scheduledTimeInSeconds >= currentTimeInSeconds - 60
+                    : false;
+                const timeDifference = scheduledTimeInSeconds
+                    ? Math.abs(etaTime.etaTime - scheduledTimeInSeconds)
+                    : null;
+
+                if (
+                    isETAValid &&
+                    (!scheduledTimeInSeconds ||
+                        (isScheduledValid && timeDifference <= 10 * 60))
+                ) {
+                    // Both times are available and within the 10-minute window
+                    if (scheduledTimeInSeconds && timeDifference <= 10 * 60) {
+                        lowerBound = Math.min(
+                            etaTime.etaTime,
+                            scheduledTimeInSeconds,
+                        );
+                        upperBound = Math.max(
+                            etaTime.etaTime,
+                            scheduledTimeInSeconds,
+                        );
+                    } else {
+                        // Scheduled time is not available or valid, use ETA as lower and ETA + 2 minutes as upper
+                        lowerBound = etaTime.etaTime;
+                        upperBound = etaTime.etaTime + 2 * 60; // Adding 2 minutes to ETA
+                    }
+                    // Adjust the etaTime object to include calculated bounds and push to the processed ETAs array
+                    processedETAs.push({
+                        ...etaTime,
+                        lowerBound: lowerBound,
+                        upperBound: upperBound,
+                        // Include human-readable bounds if necessary, e.g., for display
+                        displayLowerBound: new Date(
+                            lowerBound * 1000,
+                        ).toLocaleTimeString(),
+                        displayUpperBound: new Date(
+                            upperBound * 1000,
+                        ).toLocaleTimeString(),
+                    });
+                }
+            });
+
+            processedETAs.sort((a, b) => a.lowerBound - b.lowerBound);
+
+            // After sorting, check if the processed ETAs list isn't empty and then push it to closestETATimes
+            if (processedETAs.length > 0) {
+                closestETATimes.push({
+                    routeName: routeETA.routeName,
+                    etaTimes: processedETAs,
+                });
+            }
+        });
+    }
 
     // helper function for console logging
     function logValue(label, value) {
@@ -523,7 +610,7 @@
             const closestEtaTimes = routeETA.etaTimes.map((etaTime) => ({
                 stopName: stop_dict[etaTime.stopId].stop_name,
                 etaTime: etaTime.etaTime,
-                scheduledTime: etaTime.upperBound,
+                scheduledTime: etaTime.scheduledTime,
             }));
             const allEtasAfterClosestTimes =
                 allEtasAfterClosest
@@ -549,96 +636,12 @@
                 .map(Number);
             const now = new Date();
             now.setHours(hours, minutes, seconds, 0);
-            return now.getTime();
+            return now.getTime() / 1000; // from milliseconds to seconds
         } else {
             // Return a default timestamp (e.g., current time + 2 minutes) if scheduledTime is not a valid string
             // can be modified
             return Date.now() + 2 * 60 * 1000;
         }
-    }
-
-    function filterClosestStopsToUser() {
-        closestETATimes = [];
-        const currentTimeInSeconds = Math.floor(Date.now() / 1000);
-
-        allETATimes.forEach((routeETA) => {
-            let processedETAs = [];
-
-            routeETA.etaTimes.forEach((etaTime) => {
-                let lowerBound, upperBound;
-
-                let scheduledTimeInSeconds = null;
-
-                // Find the corresponding scheduled time entry
-                const routeSchedule = scheduleTimes.find(
-                    (schedule) => schedule.routeName === routeETA.routeName,
-                );
-                const scheduleTimeEntry = routeSchedule?.scheduleTimes.find(
-                    (schedule) =>
-                        schedule.stopId === etaTime.stopId &&
-                        schedule.tripId === etaTime.tripId,
-                );
-                if (scheduleTimeEntry && scheduleTimeEntry.scheduleTime) {
-                    scheduledTimeInSeconds = convertScheduledTimeToTimestamp(
-                        scheduleTimeEntry.scheduleTime,
-                    );
-                }
-                // Check both times are not in the past and within the 10-minute interval, if scheduledTime exists
-                const isETAValid = etaTime.etaTime >= currentTimeInSeconds - 60;
-                const isScheduledValid = scheduledTimeInSeconds
-                    ? scheduledTimeInSeconds >= currentTimeInSeconds - 60
-                    : false;
-                const timeDifference = scheduledTimeInSeconds
-                    ? Math.abs(etaTime.etaTime - scheduledTimeInSeconds)
-                    : null;
-
-                if (
-                    isETAValid &&
-                    (!scheduledTimeInSeconds ||
-                        (isScheduledValid && timeDifference <= 10 * 60))
-                ) {
-                    // Both times are available and within the 10-minute window
-                    if (scheduledTimeInSeconds && timeDifference <= 10 * 60) {
-                        lowerBound = Math.min(
-                            etaTime.etaTime,
-                            scheduledTimeInSeconds,
-                        );
-                        upperBound = Math.max(
-                            etaTime.etaTime,
-                            scheduledTimeInSeconds,
-                        );
-                    } else {
-                        // Scheduled time is not available or valid, use ETA as lower and ETA + 2 minutes as upper
-                        lowerBound = etaTime.etaTime;
-                        upperBound = etaTime.etaTime + 2 * 60; // Adding 2 minutes to ETA
-                    }
-                    console.log(lowerBound, upperBound);
-                    // Adjust the etaTime object to include calculated bounds and push to the processed ETAs array
-                    processedETAs.push({
-                        ...etaTime,
-                        lowerBound: lowerBound,
-                        upperBound: upperBound,
-                        // Include human-readable bounds if necessary, e.g., for display
-                        displayLowerBound: new Date(
-                            lowerBound * 1000,
-                        ).toLocaleTimeString(),
-                        displayUpperBound: new Date(
-                            upperBound * 1000,
-                        ).toLocaleTimeString(),
-                    });
-                }
-            });
-
-            processedETAs.sort((a, b) => a.lowerBound - b.lowerBound);
-
-            // After sorting, check if the processed ETAs list isn't empty and then push it to closestETATimes
-            if (processedETAs.length > 0) {
-                closestETATimes.push({
-                    routeName: routeETA.routeName,
-                    etaTimes: processedETAs,
-                });
-            }
-        });
     }
 </script>
 
@@ -890,7 +893,7 @@
 <style>
     table {
         font-size: 0.8rem;
-        width: 100%;
+        width: 1320px;
         border-collapse: collapse;
     }
 
