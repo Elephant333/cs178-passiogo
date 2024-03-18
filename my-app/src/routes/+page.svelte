@@ -4,7 +4,7 @@
     import Accordion, { Panel, Header, Content } from "@smui-extra/accordion";
     import IconButton, { Icon } from "@smui/icon-button";
     import Switch from "@smui/switch";
-    import Timetable from "./Timetable.svelte";
+    // import Timetable from "./Timetable.svelte";
 
     let jsonGPSData;
     let jsonETAData;
@@ -384,13 +384,29 @@
                         Math.pow(stopLng - userLng, 2) +
                             Math.pow(stopLat - userLat, 2),
                     );
+
+                    // Find scheduled time
+                    let scheduledTime = etaTime + 2 * 60; // // by default +2 if no other scheduled time is found
+                    let scheduledTimeInSeconds;
+                    const routeSchedule = scheduleTimes.find(schedule => schedule.routeName === routeName);
+                    const scheduleTimeEntry = routeSchedule?.scheduleTimes.find(schedule => 
+                        schedule.stopId === stopId && schedule.tripId === tripId); // need to match both the trip ID and stop ID
+                    // convert time string to timestamp
+                    if (scheduleTimeEntry && scheduleTimeEntry.scheduleTime) {
+                        scheduledTimeInSeconds = convertScheduledTimeToTimestamp(scheduleTimeEntry.scheduleTime);
+                    }
+                    if (scheduledTimeInSeconds > etaTime) {
+                        scheduledTime = scheduledTimeInSeconds;
+                    }
                     allETATimes[routeName].push({
                         stopId: stopId,
                         etaTime: etaTime,
                         tripId: tripId,
                         distanceToUser: distance,
-                        scheduledTime: etaTime + 2 * 60, // by default +2 if no other scheduled time is found
+                        scheduledTime: scheduledTime, 
                     });
+
+                    console.log(allETATimes)
                 }
             });
         });
@@ -401,6 +417,8 @@
                 etaTimes,
             }),
         );
+
+        // console.log(allETATimes)
     }
 
     function formatTime(timestamp) {
@@ -440,28 +458,12 @@
             if (closestStopsETA.length > 0) {
                 closestStopsETA.sort((a, b) => a.etaTime - b.etaTime);
 
-                // Find the corresponding schedule times for these closest stops and add them to the objects
-                let routeSchedule = scheduleTimes.find(schedule => schedule.routeName === routeETA.routeName);
-                if (routeSchedule) {
-                    closestStopsETA.forEach((eta) => {
-                        // need to match both the trip ID and stop ID
-                        let scheduleTimeEntry = routeSchedule.scheduleTimes.find(schedule => schedule.stopId === eta.stopId && schedule.tripId === eta.tripId);
-                        if (scheduleTimeEntry && scheduleTimeEntry.scheduleTime) {
-                            let scheduledTimeInSeconds = convertScheduledTimeToTimestamp(
-                                scheduleTimeEntry.scheduleTime,
-                            );
-                            // console.log(scheduledTimeInSeconds);
-                            // console.log(eta.etaTime);
-                            if (scheduledTimeInSeconds > eta.etaTime) {
-                                eta.scheduledTime = scheduledTimeInSeconds;
-                            }
-                        }
-                    });
-                }
                 closestETATimes.push({
                     routeName: routeETA.routeName,
                     etaTimes: closestStopsETA,
                 });
+
+                // console.log(closestETATimes)
             }
         });
     }
@@ -640,7 +642,7 @@
         } else {
             // Return a default timestamp (e.g., current time + 2 minutes) if scheduledTime is not a valid string
             // can be modified
-            return Date.now() + 2 * 60 * 1000;
+            return Date.now() + 2*60*1000;
         }
     }
 </script>
@@ -843,18 +845,20 @@
             <thead>
                 <tr>
                     <th>Stop</th>
-                    <th colspan="100%">Live ETAs</th>
+                    <th>Live ETAs</th>
+                    <th>Schedules</th>
                 </tr>
             </thead>
             <tbody>
                 {#each allETATimes as { routeName, etaTimes }}
                     <tr>
-                        <td colspan="100%"><strong>Route: {routeName}</strong></td>
+                        <td colspan="3"><strong>{routeName}</strong></td>
                     </tr>
-                    {#each etaTimes as { stopId, etaTime, tripId, distanceToUser }}
+                    {#each etaTimes as { stopId, etaTime, scheduledTime, tripId, distanceToUser }}
                         <tr>
                             <td>{stop_dict[stopId].stop_name}</td>
                             <td>{formatTime(etaTime)}</td>
+                            <td>{formatTime(scheduledTime)}</td>
                         </tr>
                     {/each}
                 {/each}
