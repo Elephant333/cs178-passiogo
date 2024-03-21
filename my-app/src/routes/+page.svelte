@@ -785,7 +785,7 @@
             <tbody>
                 {#each allETATimes as { routeName, etaTimes }}
                     <tr>
-                        <td colspan="3"><strong>{routeName}</strong></td>
+                        <td colspan="3" style="text-align: center;"><strong>{routeName}</strong></td>
                     </tr>
                     {#each etaTimes as { stopId, etaTime, scheduledTime, tripId, distanceToUser }}
                         <tr>
