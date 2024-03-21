@@ -69,18 +69,6 @@
             map.addImage("arrow-icon", image);
         });
 
-        // Old Maplibre user location button
-        // let geolocate = new maplibregl.GeolocateControl({
-        //     positionOptions: {
-        //         enableHighAccuracy: true,
-        //     },
-        //     trackUserLocation: true,
-        // });
-        // map.addControl(geolocate);
-        // geolocate.on("geolocate", function (event) {
-        //     userCoordinates = [event.coords.longitude, event.coords.latitude];
-        // });
-
         async function fetchGPSData() {
             try {
                 const response = await fetch(
@@ -772,7 +760,7 @@
             </div>
             <div id="map"></div>
         </div>
-        <em>The numbers next to each bus indicate how recently the data was updated.</em>
+        <!-- <em>The numbers next to each bus indicate how recently the data was updated.</em> -->
         <!-- Timetable rendering -->
         <table>
             <thead>
