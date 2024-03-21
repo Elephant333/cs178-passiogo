@@ -536,10 +536,13 @@
                 stopIcon.style.backgroundColor = "gray";
                 stopIcon.title = stop.name;
                 stopIcon.style.cursor = "pointer";
+            
                 const marker = new maplibregl.Marker({ element: stopIcon })
                     .setLngLat(stop.lngLat)
                     .addTo(map);
                 stopsMarkers.push(marker);
+
+
             });
         }
     }
@@ -622,7 +625,7 @@
                                         routeClicked(item.routeName)}
                                 >
                                     <div class="panel-header">
-                                        <span>{item.routeName}</span>
+                                        <span><strong>{item.routeName}</strong></span>
                                         <span
                                             >{item.closestEtaTimes[0]
                                                 .stopName}</span
@@ -769,6 +772,7 @@
             </div>
             <div id="map"></div>
         </div>
+        <em>The numbers next to each bus indicate how recently the data was updated.</em>
         <!-- Timetable rendering -->
         <table>
             <thead>
