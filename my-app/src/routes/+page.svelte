@@ -19,7 +19,6 @@
     let stop_dict;
     let closestETATimes;
     let scheduleTimes;
-    let closestScheduleTimes;
     let allEtasAfterClosest;
     let accordionItems = [];
     let toggledRoute = null; // track which routes to show, default to all
